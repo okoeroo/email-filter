@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "emailfilter.py",
+            "console": "integratedTerminal",
+            "args": [   "--input-pst-path", "${cwd}/sample/psts/Outlook.pst",
+                        "--file-with-emailaddresses", "${cwd}/sample/email-match.list",
+                        "--output-folder", "${cwd}/output",
+                        "--begin-datetime", "2001-01-01T00:00:00+01:00",
+                        "--end-datetime", "2030-01-24T23:59:59+01:00",
+                        "--local-timezone", "Europe/Amsterdam"
+                    ]
+        }
+    ]
+}
