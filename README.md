@@ -1,3 +1,10 @@
+# Email filter
+To support requests for information, after approvals, the procedure is to request for a timeframe of email and receive a PST file.
+In particular cases post-delivery and pre-processing filtering is required on the PST file to ensure that only the requested data is in the output.
+
+## Motivation to publish
+This script is published to offer transparancy, feedback via the Issues tracker, and as part of the WOO ruling itself to implicitly publish.
+
 # emailfilter.py
 This script:
 1. Takes a PST file as input and used `readpst` to extract all emails, agenda items and attachments content. It dumps these into a temporary folder.
@@ -29,7 +36,6 @@ options:
   --local-timezone LOCAL_TIMEZONE
                         Set the local timezone, default is 'Europe/Amsterdam'
 ```
-
 
 ## Requirements
 Python libraries:
