@@ -1,4 +1,3 @@
-import sys
 import shutil
 
 from support.handlepst import run_readpst
