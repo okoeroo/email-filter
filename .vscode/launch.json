@@ -12,6 +12,7 @@
             "console": "integratedTerminal",
             "args": [   "--input-pst-path", "${cwd}/sample/psts/Outlook.pst",
                         "--filter-on-file-with-emailaddresses", "${cwd}/sample/email-match.list",
+                        "--filter-on-file-with-keywords", "${cwd}/sample/keywords.list",
                         "--output-folder", "${cwd}/output",
                         "--begin-datetime", "2001-01-01T00:00:00+01:00",
                         "--end-datetime", "2030-01-24T23:59:59+01:00",
