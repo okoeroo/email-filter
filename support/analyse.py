@@ -1,7 +1,7 @@
 import os
 
 from support.handleemail import read_eml
-from support.filter import filter_emails_by_addresses
+from support.filter_emails_by_addresses import filter_emails_by_addresses
 
 
 # analyse .eml
