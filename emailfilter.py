@@ -18,7 +18,7 @@ def main(config: dict) -> None:
     remove_files_not_matching_list_of_extentions(config['tmp_pst_dir'], ['.eml'])
 
     # Walk and analyse
-    walk_and_analyse(config['tmp_pst_dir'], config['email_addresses'], config['begin_dt'], config['end_dt'])
+    walk_and_analyse(config)
 
     # Remove directories which are empty
     print(f"Removing empty directories from {config['tmp_pst_dir']}")
