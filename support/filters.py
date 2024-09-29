@@ -13,7 +13,8 @@ def filter_emails_by_datetime_frame(config: list[str], msg: EmailMessage) -> boo
     # First filter - timeframe
     date_str = msg.get('date')
     if date_str is None:
-        print(f"Warning: no datetime field found in email. Reporting as no match.")    
+        if config['verbose']:
+            print(f"Warning: no datetime field found in email. Reporting as no match.")    
         return False
 
     # Convert
@@ -25,11 +26,13 @@ def filter_emails_by_datetime_frame(config: list[str], msg: EmailMessage) -> boo
 
     # Check if the date_value is within the timeframe.
     if date_value >= begin_dt and date_value <= end_dt:
-        print(f"HIT: email within datetime frame")
+        if config['verbose']:
+            print(f"HIT: email within datetime frame")
         return True
 
     # If the email address is outside of the time-frame.
-    print(f"Info: Out of time frame: e-mail Date is {date_value.isoformat()}, which out of the {begin_dt.isoformat()} and {end_dt.isoformat()} window.")
+    if config['verbose']:
+        print(f"Info: Out of time frame: e-mail Date is {date_value.isoformat()}, which out of the {begin_dt.isoformat()} and {end_dt.isoformat()} window.")
     return False
 
 
@@ -76,8 +79,9 @@ def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
     def remove_line_endings(text):
         return text.replace('\r\n', '').replace('\n', '').replace('\r', '')
 
-    def clean_input(text_object):
-        return remove_line_endings(str(text_object)).lower()
+    def clean_input(body):
+        s = str(body)
+        return remove_line_endings(s).lower()
 
     # input keywords to match
     keywords = config['keywords']
