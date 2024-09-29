@@ -22,24 +22,34 @@ This script:
 ## Commandline options
 
 ```txt
-usage: emailfilter.py [-h] [-v] --input-pst-path INPUT_PST_PATH [--file-with-emailaddresses FILE_WITH_EMAILADDRESSES] --output-folder OUTPUT_FOLDER
-                      [--begin-datetime BEGIN_DATETIME] [--end-datetime END_DATETIME] [--local-timezone LOCAL_TIMEZONE]
+usage: emailfilter.py [-h] [-v] [--local-timezone LOCAL_TIMEZONE] --input-pst-path INPUT_PST_PATH
+                      [--filter-match-emailaddresses-file-path FILTER_MATCH_EMAILADDRESSES_FILE_PATH] [--filter-match-emailaddresses-must-match {yes,no}]
+                      [--filter-match-keywords-file-path FILTER_MATCH_KEYWORDS_FILE_PATH] [--filter-match-keywords-must-match {yes,no}]
+                      [--filter-timeframe-begin-datetime FILTER_DATETIME_FRAME_BEGIN_DATETIME] [--filter-timeframe-end-datetime FILTER_DATETIME_FRAME_END_DATETIME]
+                      --output-folder OUTPUT_FOLDER
 
 options:
   -h, --help            show this help message and exit
   -v, --verbose         Verbose mode. Default is off
-  --input-pst-path INPUT_PST_PATH
-                        Input PST file.
-  --file-with-emailaddresses FILE_WITH_EMAILADDRESSES
-                        File with emailaddresses
-  --output-folder OUTPUT_FOLDER
-                        This is the output directory in which all results will be moved into
-  --begin-datetime BEGIN_DATETIME
-                        Begin datetime, optional with timezone
-  --end-datetime END_DATETIME
-                        End datetime, optional with timezone
   --local-timezone LOCAL_TIMEZONE
                         Set the local timezone, default is 'Europe/Amsterdam'
+  --input-pst-path INPUT_PST_PATH
+                        Input PST file.
+  --filter-match-emailaddresses-file-path FILTER_MATCH_EMAILADDRESSES_FILE_PATH
+                        Filepath to a file which lists emailaddresses to match. When any emailaddress matches To, CC, BCC or From the mail is selected. When not set, no
+                        filter is applied on sender nor recipients.
+  --filter-match-emailaddresses-must-match {yes,no}
+                        When an emailaddress is on the list and 'yes' is set, the email is matched. When 'no' is set, the email will not match.
+  --filter-match-keywords-file-path FILTER_MATCH_KEYWORDS_FILE_PATH
+                        Filepath to a file which lists keywords to match. When any keyword matches, the email is selected. When not set, no mails are filtered
+  --filter-match-keywords-must-match {yes,no}
+                        When an keyword is on the list and 'yes' is set, the keyword is matched. When 'no' is set, the keyword will not match.
+  --filter-timeframe-begin-datetime FILTER_DATETIME_FRAME_BEGIN_DATETIME
+                        Begin datetime in ISO format, optional with timezone. Example: 2001-01-01T00:00:00+01:00
+  --filter-timeframe-end-datetime FILTER_DATETIME_FRAME_END_DATETIME
+                        End datetime in ISO format, optional with timezone. Example: 2030-01-24T23:59:59+01:00
+  --output-folder OUTPUT_FOLDER
+                        This is the output directory in which all results will be moved into
 ```
 
 ## Requirements
