@@ -95,6 +95,10 @@ def setup(argp):
     config['filter_datetime_frame_end_datetime'] = argp.filter_datetime_frame_end_datetime
     config['output_folder'] = argp.output_folder
 
+    # Sanity check
+    if bool(config['filter_datetime_frame_begin_datetime'] is not None) ^ bool(config['filter_datetime_frame_end_datetime'] is not None): 
+        raise TypeError("Error: a begin or end date is set, but not both.")
+
     # Set default timezone to use as the local timezone
     set_localtime(argp.local_timezone)
 
