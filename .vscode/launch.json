@@ -12,10 +12,12 @@
             "console": "integratedTerminal",
             "args": [   "--input-pst-path", "${cwd}/sample/psts/Outlook.pst",
                         "--filter-match-emailaddresses-file-path", "${cwd}/sample/email-match.list",
+                        "--filter-match-emailaddresses-must-match", "yes",
                         "--filter-match-keywords-file-path", "${cwd}/sample/keywords.list",
-                        "--output-folder", "${cwd}/output",
+                        "--filter-match-keywords-must-match", "yes",
                         "--filter-timeframe-begin-datetime", "2001-01-01T00:00:00+01:00",
                         "--filter-timeframe-end-datetime", "2030-01-24T23:59:59+01:00",
+                        "--output-folder", "${cwd}/output",
                         "--local-timezone", "Europe/Amsterdam"
                     ]
         }
