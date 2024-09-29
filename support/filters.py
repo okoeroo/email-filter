@@ -1,4 +1,3 @@
-import datetime
 from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 import pytz
@@ -74,55 +73,28 @@ def filter_emails_by_addresses(config: list[str], msg: EmailMessage) -> bool:
 
 # Function to filter emails by a list of email addresses
 def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
-    return True
+    def remove_line_endings(text):
+        return text.replace('\r\n', '').replace('\n', '').replace('\r', '')
 
-    # Init
-    email_addresses = config['email_addresses']
-    email_addresses = [email.lower() for email in email_addresses]
+    def clean_input(text_object):
+        return remove_line_endings(str(text_object)).lower()
 
-    # From: ignore MAILER-DAEMON
-    this_from = msg.get('From', '')
-    if 'MAILER-DAEMON' in this_from:
-        return False
+    # input keywords to match
+    keywords = config['keywords']
 
+    # Lowercase subject and body in all formats
+    subject         = clean_input(msg.get('subject'))
+    body_related    = clean_input(msg.get_body(preferencelist='related'))
+    body_html       = clean_input(msg.get_body(preferencelist='html'))
+    body_plain      = clean_input(msg.get_body(preferencelist='plain'))
 
-    # First filter - timeframe
-    date_str = msg.get('date')
-    if date_str:
-        date_value = parsedate_to_datetime(date_str)
-
-        # If the date value is not time aware, force it to localtime
-        if date_value.tzinfo is None:
-            date_value = pytz.timezone('Europe/Amsterdam').localize(date_value)
-
-        # Discard if out of timeframe
-        if date_value < begin_dt or date_value > end_dt:
-            print(f"Info: Out of time frame: e-mail Date is {date_value.isoformat()}, which out of the {begin_dt.isoformat()} and {end_dt.isoformat()} window.")
-            return False
-
-
-    # Second filter - addressing
-    if any(email_address in this_from.lower() for email_address in email_addresses):
-        print(f"HIT in From found")
-        return True
-
-    this_to = msg.get('To')
-    if this_to is not None:
-        if any(email_address in this_to.lower() for email_address in email_addresses):
-            print(f"HIT in To found")
+    # Match: does keyword exist in string
+    for item in keywords:
+        if item in subject or \
+            item in body_related or \
+            item in body_html or \
+            item in body_plain:
             return True
 
-    this_cc = msg.get('Cc')
-    if this_cc is not None:
-        if any(email_address in this_cc.lower() for email_address in email_addresses):
-            print(f"HIT in Cc found")
-            return True
-
-    this_bcc = msg.get('Bcc')
-    if this_bcc is not None:
-        if any(email_address in this_bcc.lower() for email_address in email_addresses):
-            print(f"HIT in Bcc found")
-            return True
-
-    # If the email address is not found in any of the fields
+    # No match
     return False
