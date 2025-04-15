@@ -1,3 +1,5 @@
+#!/usr/bin/env
+
 import shutil
 
 from support.handlepst import run_readpst
