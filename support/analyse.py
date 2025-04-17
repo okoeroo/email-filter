@@ -1,6 +1,7 @@
 import os
 
 from support.handleemail import read_eml
+from email import policy
 from support.filters import filter_emails_by_addresses, filter_emails_by_datetime_frame, filter_emails_by_keywords
 
 
@@ -14,8 +15,12 @@ def analyse_file(config: list[str], filepath: str) -> bool:
         return False # mark as not a match
 
     # read and parse the email file into an Email object
-    msg = read_eml(filepath)
-        
+    #msg = read_eml(filepath)
+
+    from email.parser import BytesParser
+    with open(filepath, "rb") as f:
+        msg = BytesParser(policy=policy.default).parse(f)
+
     # Run filters
     if config['filter_datetime_frame_begin_datetime'] is not None and config['filter_datetime_frame_end_datetime'] is not None:
         ret_datetime_frame_matched = filter_emails_by_datetime_frame(config, msg)

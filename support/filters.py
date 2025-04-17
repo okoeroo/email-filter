@@ -1,5 +1,8 @@
 from email import message_from_string
+from email import policy
+from email import message_from_bytes, policy
 from email.message import EmailMessage
+from striprtf.striprtf import rtf_to_text
 from email.utils import parsedate_to_datetime
 import pytz
 
@@ -92,9 +95,33 @@ def extract_body_from_email(msg: EmailMessage, preferencelist: str) -> str:
     charset = msg.get_content_charset() or 'utf-8'
     body_variant = msg.get_body(preferencelist=preferencelist)
     if body_variant:
-        body_variant = remove_line_endings(str(body_variant)).lower()
+        s = str(body_variant)
+        body_variant = remove_line_endings(s).lower()
     return body_variant
 
+
+def extract_body_from_email(msg: EmailMessage) -> str:
+    # 1. Probeer gewone text/plain of text/html body
+    body = msg.get_body(preferencelist=('plain', 'html'))
+    if body:
+        return body.get_content()
+
+    # 2. Doorloop alle onderdelen op zoek naar rtf-body.rtf
+    for part in msg.walk():
+        content_disposition = part.get("Content-Disposition", "")
+        filename = part.get_filename()
+        if filename and filename.lower() == "rtf-body.rtf":
+            # Decode payload veilig
+            payload = part.get_payload(decode=True)
+            try:
+                rtf_str = payload.decode('utf-8')
+            except UnicodeDecodeError:
+                rtf_str = payload.decode('latin1', errors='replace')
+
+            # Converteer RTF naar platte tekst
+            return rtf_to_text(rtf_str)
+
+    return None
 
 # Function to filter emails by a list of email addresses
 def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
@@ -104,23 +131,34 @@ def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
 
     # Lowercase subject and body in all formats
     subject         = extract_subject_from_email(msg)
-    body_related    = extract_body_from_email(msg, 'related')
-    body_html       = extract_body_from_email(msg, 'html')
-    body_plain      = extract_body_from_email(msg, 'plain')
+#    body_related    = extract_body_from_email(msg, 'related')
+#    body_html       = extract_body_from_email(msg, 'html')
+#    body_plain      = extract_body_from_email(msg, 'plain')
+
+    body = extract_body_from_email(msg)
+    if not body:
+        print("################## NO BODY #####################")
+        print(msg)
+        print("################## NO BODY #####################")
+        import sys
+        sys.exit(0)
 
     # Match: does keyword exist in string
     for item in keywords:
         if subject and item in subject:
             return True
 
-        if body_related and item in body_related:
+        if body and item in body:
             return True
 
-        if body_html and item in body_html:
-            return True
-
-        if body_plain and item in body_plain:
-            return True
+#        if body_related and item in body_related:
+#            return True
+#
+#        if body_html and item in body_html:
+#            return True
+#
+#        if body_plain and item in body_plain:
+#            return True
 
     # No match
     return False

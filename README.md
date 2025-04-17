@@ -57,6 +57,7 @@ options:
 Python libraries:
 
 * pip install pytz
+* pip install striprtf
 
 Requires readpst:
 
