@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
+import pytz
+
 import shutil
 
 from support.handlepst import run_readpst
@@ -10,12 +13,20 @@ from support.setup_args import argparsing, setup
 
 # Main program
 def main(config: dict) -> None:
+    # Gebruik bijvoorbeeld Europe/Amsterdam als tijdzone
+    tz = pytz.timezone('Europe/Amsterdam')
+    now = datetime.now(tz)
+
+    # Print in volledig ISO 8601 formaat
+    print("Start tijd:", now.isoformat(), now.strftime("%d-%m-%Y %H:%M:%S %Z%z"))
+
+
     # Run readpst on the PST file and into the temporary path
     rc = run_readpst(config['tmp_pst_dir'], config['input_pst_path'])
     if rc != 0:
         print("Reading PST failed:", rc)
         raise Exception("readpst failed with error core {rc}")
-    
+
     # Remove not matching extentions
     remove_files_not_matching_list_of_extentions(config['tmp_pst_dir'], ['.eml'])
 

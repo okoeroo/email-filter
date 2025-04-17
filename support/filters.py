@@ -1,3 +1,4 @@
+from email import message_from_string
 from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 import pytz
@@ -74,31 +75,53 @@ def filter_emails_by_addresses(config: list[str], msg: EmailMessage) -> bool:
     return False
 
 
+# Remove line ending
+def remove_line_endings(text: str) -> str:
+    return text.replace('\r\n', '').replace('\n', '').replace('\r', '')
+
+
+# Extract e-mail subject to processable text
+def extract_subject_from_email(msg: EmailMessage) -> str:
+    s = msg.get('subject')
+    subject = remove_line_endings(s).lower()
+    return subject
+
+
+# Extract e-mail body to processable text
+def extract_body_from_email(msg: EmailMessage, preferencelist: str) -> str:
+    charset = msg.get_content_charset() or 'utf-8'
+    body_variant = msg.get_body(preferencelist=preferencelist)
+    if body_variant:
+        body_variant = remove_line_endings(str(body_variant)).lower()
+    return body_variant
+
+
 # Function to filter emails by a list of email addresses
 def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
-    def remove_line_endings(text):
-        return text.replace('\r\n', '').replace('\n', '').replace('\r', '')
-
-    def clean_input(body):
-        s = str(body)
-        return remove_line_endings(s).lower()
 
     # input keywords to match
     keywords = config['keywords']
 
     # Lowercase subject and body in all formats
-    subject         = clean_input(msg.get('subject'))
-    body_related    = clean_input(msg.get_body(preferencelist='related'))
-    body_html       = clean_input(msg.get_body(preferencelist='html'))
-    body_plain      = clean_input(msg.get_body(preferencelist='plain'))
+    subject         = extract_subject_from_email(msg)
+    body_related    = extract_body_from_email(msg, 'related')
+    body_html       = extract_body_from_email(msg, 'html')
+    body_plain      = extract_body_from_email(msg, 'plain')
 
     # Match: does keyword exist in string
     for item in keywords:
-        if item in subject or \
-            item in body_related or \
-            item in body_html or \
-            item in body_plain:
+        if subject and item in subject:
+            return True
+
+        if body_related and item in body_related:
+            return True
+
+        if body_html and item in body_html:
+            return True
+
+        if body_plain and item in body_plain:
             return True
 
     # No match
     return False
+
