@@ -139,8 +139,9 @@ def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
     body    = extract_body_from_email(msg)
     if not body:
         print("################## NO BODY #####################")
-        print(msg)
-        print("################## NO BODY #####################")
+        ### Mogelijk moeten de attachments er nog uitgehaald worden.
+        ### print(msg)
+        ### print("################## NO BODY #####################")
 
     # Match: does keyword exist in string
     for item in keywords:
