@@ -80,7 +80,9 @@ def filter_emails_by_addresses(config: list[str], msg: EmailMessage) -> bool:
 
 # Remove line ending
 def remove_line_endings(text: str) -> str:
-    return text.replace('\r\n', '').replace('\n', '').replace('\r', '')
+    text = text.replace('\n\n', ' ').replace('\r\n', ' ')
+    text = text.replace('\n', '').replace('\r', '')
+    return text
 
 
 # Extract e-mail subject to processable text
@@ -100,11 +102,12 @@ def extract_body_from_email(msg: EmailMessage, preferencelist: str) -> str:
     return body_variant
 
 
+# The purpose here is to exclusively extract the body, which could be Rich Text, as if it were an attachment
 def extract_body_from_email(msg: EmailMessage) -> str:
     # 1. Probeer gewone text/plain of text/html body
     body = msg.get_body(preferencelist=('plain', 'html'))
     if body:
-        return body.get_content()
+        return remove_line_endings(body.get_content())
 
     # 2. Doorloop alle onderdelen op zoek naar rtf-body.rtf
     for part in msg.walk():
@@ -119,7 +122,9 @@ def extract_body_from_email(msg: EmailMessage) -> str:
                 rtf_str = payload.decode('latin1', errors='replace')
 
             # Converteer RTF naar platte tekst
-            return rtf_to_text(rtf_str)
+            return remove_line_endings(rtf_to_text(rtf_str))
+        else:
+            print("DEBUG: filename", filename)
 
     return None
 
@@ -130,18 +135,12 @@ def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
     keywords = config['keywords']
 
     # Lowercase subject and body in all formats
-    subject         = extract_subject_from_email(msg)
-#    body_related    = extract_body_from_email(msg, 'related')
-#    body_html       = extract_body_from_email(msg, 'html')
-#    body_plain      = extract_body_from_email(msg, 'plain')
-
-    body = extract_body_from_email(msg)
+    subject = extract_subject_from_email(msg)
+    body    = extract_body_from_email(msg)
     if not body:
         print("################## NO BODY #####################")
         print(msg)
         print("################## NO BODY #####################")
-        import sys
-        sys.exit(0)
 
     # Match: does keyword exist in string
     for item in keywords:
@@ -150,15 +149,6 @@ def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
 
         if body and item in body:
             return True
-
-#        if body_related and item in body_related:
-#            return True
-#
-#        if body_html and item in body_html:
-#            return True
-#
-#        if body_plain and item in body_plain:
-#            return True
 
     # No match
     return False
