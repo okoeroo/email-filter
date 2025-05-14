@@ -3,3 +3,4 @@ output
 tags
 *.swp
 .venv
+*.BACKUP
