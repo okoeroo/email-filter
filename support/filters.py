@@ -19,7 +19,7 @@ def filter_emails_by_datetime_frame(config: list[str], msg: EmailMessage) -> boo
     if date_str is None:
         if config['verbose']:
             print(f"Warning: no datetime field found in email. Reporting as no match.")    
-        return False
+        return True # Don't discard based on format failures
 
     # Convert
     date_value = parsedate_to_datetime(date_str)
@@ -129,7 +129,9 @@ def extract_body_from_email(msg: EmailMessage) -> str:
     return None
 
 # Function to filter emails by a list of email addresses
-def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
+def filter_emails_by_keywords(config: list[str], context: dict) -> bool:
+    msg: EmailMessage = context['msg']
+    context['ret_keyword_matched'] = False
 
     # input keywords to match
     keywords = config['keywords']
@@ -146,11 +148,15 @@ def filter_emails_by_keywords(config: list[str], msg: EmailMessage) -> bool:
     # Match: does keyword exist in string
     for item in keywords:
         if subject and item in subject:
-            return True
+            context['ret_keyword_matched'] = True
+            context['keyword_match'] = item
+            return context
 
         if body and item in body:
-            return True
+            context['ret_keyword_matched'] = True
+            context['keyword_match'] = item
+            return context
 
     # No match
-    return False
+    return context
 

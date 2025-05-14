@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
+from tzlocal import get_localzone_name
 import pytz
 
 import shutil
@@ -13,19 +14,34 @@ from support.setup_args import argparsing, setup
 
 # Main program
 def main(config: dict) -> None:
-    # Run readpst on the PST file and into the temporary path
-    try:
-        run_readpst(config['tmp_pst_dir'], config['input_pst_path'])
-    except Exception as e:
-        print("Error:", e)
-        print("Info: temporary directory is here:", config['tmp_pst_dir'])
+    # Test if the override switch if provided
+    if config['unpacked_pst'] is None:
+        # Run readpst on the PST file and into the temporary path
+        try:
+            run_readpst(config['tmp_pst_dir'], config['input_pst_path'])
+        except Exception as e:
+            print("Error:", e)
+            print("Info: temporary directory is here:", config['tmp_pst_dir'])
+            return
+    else:
+        print(f"Override: Skipping the readpst processing. Pre-unpacked directory is \"{config['unpacked_pst']}\"")
+
+
+    # if only PST unpacking, skip all.
+    if config['only_pst_unpack']:
+        print(f"Done. Location is: {config['tmp_pst_dir']}")
         return
 
     # Remove not matching extentions
-    remove_files_not_matching_list_of_extentions(config['tmp_pst_dir'], ['.eml'])
+#    remove_files_not_matching_list_of_extentions(config['tmp_pst_dir'], ['.eml'])
 
     # Walk and analyse
     walk_and_analyse(config)
+
+    # Debug
+    if config['debug']:
+        print(f"DEBUG: exiting without moving files. Location is: {config['tmp_pst_dir']}")
+        return
 
     # Remove directories which are empty
     print(f"Removing empty directories from {config['tmp_pst_dir']}")
@@ -41,17 +57,22 @@ def main(config: dict) -> None:
 # Start
 if __name__ == "__main__":
     # Gebruik bijvoorbeeld Europe/Amsterdam als tijdzone
-    tz = pytz.timezone('Europe/Amsterdam')
+    tz_name = get_localzone_name()
+    tz = pytz.timezone(tz_name)
     now = datetime.now(tz)
 
     # Print in volledig ISO 8601 formaat
     print("Start tijd:", now.isoformat(), now.strftime("%d-%m-%Y %H:%M:%S %Z%z"))
 
-    # Parse commandline arguments
-    argp = argparsing(__file__)
+    try:
+        # Parse commandline arguments
+        argp = argparsing(__file__)
 
-    # Setup all the things
-    config = setup(argp)
+        # Setup all the things
+        config = setup(argp)
 
-    # Kick it off
-    main(config)
+        # Kick it off
+        main(config)
+    except Exception as e:
+        print(f"Error: {e}")
+

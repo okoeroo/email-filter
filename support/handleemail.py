@@ -8,4 +8,3 @@ def read_eml(filepath: str) -> EmailMessage:
     with open(filepath, 'rb') as file:
         msg = BytesParser(policy=policy.default).parse(file)
     return msg
-
