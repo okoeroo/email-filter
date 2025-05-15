@@ -192,19 +192,15 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
 
                 path = pathlib.Path(eml_filepath)
 
-                # Step 1: Get filename without suffix
-                base_name = path.stem  # 'document'
-
-                # Step 2: Create a new directory path
-                dir_path = path.with_name(base_name)  # replaces 'document.pdf' with 'document'
-
-                # Step 3: Make the directory
+                # Create a new directory path, based on the filename without suffix
+                dir_path = path.with_name(path.stem)  # replaces 'document.pdf' with 'document'
                 dir_path.mkdir(parents=True, exist_ok=True)
 
-                print(f"Directory created at: {dir_path}")
+                # Add filename of the attachment, only allow unique names.
                 orig_path = dir_path / filename
                 full_path = unique_filename(orig_path)
 
+                # Write bytestream
                 with open(full_path, "wb") as f:
                     f.write(data)
                     print(f"Attachment written: {full_path}")
