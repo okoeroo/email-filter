@@ -1,7 +1,4 @@
 import re
-from email import message_from_string
-from email import policy
-from email import message_from_bytes, policy
 from email.message import EmailMessage
 from striprtf.striprtf import rtf_to_text
 from email.utils import parsedate_to_datetime
@@ -9,7 +6,7 @@ import pytz
 
 
 # Function to filter emails by a list of email addresses
-def filter_emails_by_datetime_frame(config: list[str], msg: EmailMessage) -> bool:
+def filter_emails_by_datetime_frame(config: dict, msg: EmailMessage) -> bool:
     # Init
     begin_dt = config['begin_dt']
     end_dt = config['end_dt']
@@ -42,7 +39,7 @@ def filter_emails_by_datetime_frame(config: list[str], msg: EmailMessage) -> boo
 
 
 # Function to filter emails by a list of email addresses
-def filter_emails_by_addresses(config: list[str], msg: EmailMessage) -> bool:
+def filter_emails_by_addresses(config: dict, msg: EmailMessage) -> bool:
     # Init
     email_addresses = config['email_addresses']
     email_addresses = [email.lower() for email in email_addresses]
@@ -130,9 +127,9 @@ def extract_body_from_email(msg: EmailMessage) -> str:
     return None
 
 # Function to filter emails by a list of email addresses
-def filter_emails_by_keywords(config: list[str], context: dict) -> bool:
+def filter_emails_by_keywords(config: dict, context: dict) -> bool:
     msg: EmailMessage = context['msg']
-    context['ret_keyword_matched'] = False
+    context['ret_eml_keyword_matched'] = False
 
     # input keywords to match
     keywords = config['keywords']
@@ -149,12 +146,12 @@ def filter_emails_by_keywords(config: list[str], context: dict) -> bool:
     # Match: does keyword exist in string
     # for item in keywords:
     #     if subject and item in subject.lower():
-    #         context['ret_keyword_matched'] = True
+    #         context['ret_eml_keyword_matched'] = True
     #         context['keyword_match'] = [item]
     #         return context
 
     #     if body and item in body.lower():
-    #         context['ret_keyword_matched'] = True
+    #         context['ret_eml_keyword_matched'] = True
     #         context['keyword_match'] = [item]
     #         return context
 
@@ -162,14 +159,14 @@ def filter_emails_by_keywords(config: list[str], context: dict) -> bool:
     for item in keywords:
         if subject:
             results_subject = find_exact_word(subject, item)
-            context['ret_keyword_matched'] = bool(results_subject)
+            context['ret_eml_keyword_matched'] = bool(results_subject)
             context['keyword_match'] = results_subject
             if bool(results_subject):
                 return context
 
         if body:
             results_body = find_exact_word(body, item)
-            context['ret_keyword_matched'] = bool(results_body)
+            context['ret_eml_keyword_matched'] = bool(results_body)
             context['keyword_match'] = results_body
             if bool(results_body):
                 return context

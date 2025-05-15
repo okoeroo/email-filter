@@ -1,100 +1,69 @@
 import os
+import pathlib
 
-from support.handleemail import read_eml
-from email.message import EmailMessage
-from support.filters import filter_emails_by_addresses, filter_emails_by_datetime_frame, filter_emails_by_keywords
-
-
-def apply_filters(config: list[str], context: dict) -> dict:
-    msg: EmailMessage = context['msg']
-
-    context['ret_datetime_frame_matched'] = False
-    context['ret_emailaddress_matched'] = False
-    context['ret_keyword_matched'] = False
-
-    # Filter for timeframe
-    if config['filter_datetime_frame_begin_datetime'] is not None and config['filter_datetime_frame_end_datetime'] is not None:
-        context['ret_datetime_frame_matched'] = filter_emails_by_datetime_frame(config, msg)
-
-        # Unchangeable outcome, when the begin and end dates are set and the email is out of timeframe, this makes for an implicit mismatch.
-        if not context['ret_datetime_frame_matched']:
-            return context
-
-    # Filter for emailaddress, when the list and config is set.
-    if config['email_addresses'] is not None:
-        context['ret_emailaddress_matched'] = filter_emails_by_addresses(config, msg)
-
-    # Filter for keywords, when the list and config is set.
-    if config['keywords'] is not None:
-        context = filter_emails_by_keywords(config, context)
-
-    # final verdict
-    return context
-
-
-### Run logical settings
-def verdict_filter_output(context: dict) -> bool:
-    if not context['ret_datetime_frame_matched']:
-        print("No hit: out of timeframe.")
-        return False
-
-    # Must match emailadress, and it did match. Then, if there is no keywords filter, this is the final answer.
-    if context['ret_emailaddress_matched']  and not context['ret_keyword_matched']:
-        print("HIT: matched on emailaddress")
-        return True
-
-    # Must match keyword, and it did match. Then, if there is no emailaddress filter, this is the final answer.
-    if not context['ret_emailaddress_matched'] and context['ret_keyword_matched']:
-        print(f"HIT: matched on keyword. Keyword hit on: \"{context['keyword_match']}\"")
-        return True
-
-    # If both keyword and emailaddresses are set, and both have "must match", then it's a logical and between them.
-    if context['ret_emailaddress_matched'] and context['ret_keyword_matched']:
-        print(f"HIT: matched on emailaddress and keyword. Keyword hit on: \"{context['keyword_match']}\"")
-        return True
-
-    # Otherwise, no match
-    print("No hit")
-    return False
+from support.handleemail import read_eml, apply_eml_filters, verdict_eml_filter_output
+from support.handleics import read_ics, apply_ics_filters, verdict_ics_filter_output
 
 
 # Cleanup a file: meaning, removing a file when, not in debug mode, a match
-def cleanup_file(config: list[str], context: dict) -> None:
+def cleanup_file(config: dict, context: dict) -> None:
     # When not in debug mode, and no match, then remove the file
     if not config['debug'] and not context['match']:
-        print("Removing non-match:", context['filepath'])
+        print(f"Removing non-match: {context['filepath']}")
         os.unlink(context['filepath'])
+
+
+def analyse_filetype_eml(config: dict, context: dict) -> dict:
+    # Read and parse email
+    context['msg'] = read_eml(context['filepath'])
+
+    # Applying all the filter rules on the email
+    context = apply_eml_filters(config, context)
+
+    # Return verdict value, hit = True, no hit = False
+    context['match'] = verdict_eml_filter_output(context)
+
+    # Cleanup file, keeping logic into account
+    cleanup_file(config, context)
+
+    return context
+
+
+def analyse_filetype_ics(config: dict, context: dict) -> dict:
+    # Read and parse email
+    context['gcal'] = read_ics(context['filepath'])
+
+    # Applying all the filter rules on the email
+    context = apply_ics_filters(config, context)
+
+    # Return verdict value, hit = True, no hit = False
+    context['match'] = verdict_ics_filter_output(context)
+
+    # Cleanup file, keeping logic into account
+    cleanup_file(config, context)
+
+    return context
 
 
 # analyse .eml
 # Each filter replies with a boolean.
 # The final decision is a boolean
-def analyse_file(config: list[str], filepath: str) -> None:
+def analyse_file(config: dict, filepath: str) -> None:
     context = {}
 
-    # Add filepath to email in context
     context['filepath'] = filepath
-
-    # only allow .eml
-    if not filepath.endswith('.eml'):
-        print(f"Filepath not .eml: {context['filepath']}")
-        context['match'] = False
-
-        # Cleanup file, keeping logic into account
-        cleanup_file(config, context)
-        return
-
-    # Read and parse email
-    context['msg'] = read_eml(context['filepath'])
-
-    # Applying all the filter rules on the email
-    context = apply_filters(config, context)
-
-    # Return verdict value, hit = True, no hit = False
-    context['match'] = verdict_filter_output(context)
-
-    # Cleanup file, keeping logic into account
-    cleanup_file(config, context)
+    context['extention'] = pathlib.Path(filepath).suffix.lower()
+    match context['extention']:
+        case ".ics":
+            context['extention'] = context['extention']
+            context = analyse_filetype_ics(config, context)
+        case ".eml":
+            context['extention'] = context['extention']
+            context = analyse_filetype_eml(config, context)
+        case _:
+            print(f"Warning: File extention \"{context['extention']}\" not supported, found in file: {context['filepath']}")
+            context['match'] = False
+            cleanup_file(config, context)
 
 
 # Walk dir and start analyses
@@ -108,4 +77,4 @@ def walk_and_analyse(config) -> None:
             filepath = os.path.join(dirpath, filename)
             
             print(f'Analysing file: {filepath}')
-            match = analyse_file(config, filepath)
+            analyse_file(config, filepath)
