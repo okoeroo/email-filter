@@ -48,19 +48,17 @@ def verdict_eml_filter_output(config: dict, context: dict) -> bool:
         context['ret_eml_keyword_matched'] or \
         context['ret_eml_attachment_keyword_matched']:
 
-        rep = "HIT: matched on" 
+        items = []
         if context['ret_emailaddress_matched']:
-            rep += " emailaddress(es)"
+            items.append("emailaddress(es)")
 
         if context['ret_eml_keyword_matched']:
-            rep += " keyword(s)"
+            items.append("keyword(s)")
 
         if context['ret_eml_attachment_keyword_matched']:
-            rep += " attachments"
-        
-        rep += f". Keyword hit on: \"{context['keyword_match']}\""
+            items.append("attachments")
 
-        print(rep)
+        print(f"HIT: matched on [{", ".join(items)}]. Keyword hit on: {context['keyword_match']}")
         return True
 
     # Otherwise, no match
