@@ -71,8 +71,8 @@ if __name__ == "__main__":
         # Setup all the things
         config = setup(argp)
 
-        # Kick it off
-        main(config)
     except Exception as e:
         print(f"Error: {e}")
 
+    # Kick it off
+    main(config)
