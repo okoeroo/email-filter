@@ -1,7 +1,7 @@
 from email import policy
 from email.message import EmailMessage
 from email.parser import BytesParser
-from support.filters import filter_emails_by_addresses, filter_emails_by_datetime_frame, filter_emails_by_keywords
+from support.filters_support_email import filter_emails_by_addresses, filter_emails_by_datetime_frame, filter_emails_by_keywords
 
 
 # Function to read .eml file

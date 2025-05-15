@@ -1,4 +1,18 @@
 import os
+import re
+
+
+# Perfect match
+def find_exact_word(text: str, word: str) -> list[str]:
+    pattern = rf'(?<![a-zA-Z]){re.escape(word)}(?![a-zA-Z])'
+    return re.findall(pattern, text, flags=re.IGNORECASE)
+
+
+# Remove line ending
+def remove_line_endings(text: str) -> str:
+    text = text.replace('\n\n', ' ').replace('\r\n', ' ')
+    text = text.replace('\n', '').replace('\r', '')
+    return text
 
 
 # Function to:

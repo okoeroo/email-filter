@@ -1,7 +1,7 @@
-import re
 from email.message import EmailMessage
 from striprtf.striprtf import rtf_to_text
 from email.utils import parsedate_to_datetime
+from support.filter_support import remove_line_endings, find_exact_word
 import pytz
 
 
@@ -74,13 +74,6 @@ def filter_emails_by_addresses(config: dict, msg: EmailMessage) -> bool:
 
     # If the email address is not found in any of the fields
     return False
-
-
-# Remove line ending
-def remove_line_endings(text: str) -> str:
-    text = text.replace('\n\n', ' ').replace('\r\n', ' ')
-    text = text.replace('\n', '').replace('\r', '')
-    return text
 
 
 # Extract e-mail subject to processable text
@@ -176,6 +169,4 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
     return context
 
 
-def find_exact_word(text: str, word: str) -> list[str]:
-    pattern = rf'(?<![a-zA-Z]){re.escape(word)}(?![a-zA-Z])'
-    return re.findall(pattern, text, flags=re.IGNORECASE)
+

@@ -1,6 +1,6 @@
 from icalendar import Calendar
 from datetime import datetime
-from support.filters import find_exact_word
+from support.filter_support import find_exact_word
 
 
 """
