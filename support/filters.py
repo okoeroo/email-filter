@@ -1,3 +1,4 @@
+import re
 from email import message_from_string
 from email import policy
 from email import message_from_bytes, policy
@@ -88,7 +89,7 @@ def remove_line_endings(text: str) -> str:
 # Extract e-mail subject to processable text
 def extract_subject_from_email(msg: EmailMessage) -> str:
     s = msg.get('subject')
-    subject = remove_line_endings(s).lower()
+    subject = remove_line_endings(s)
     return subject
 
 
@@ -98,7 +99,7 @@ def extract_body_from_email(msg: EmailMessage, preferencelist: str) -> str:
     body_variant = msg.get_body(preferencelist=preferencelist)
     if body_variant:
         s = str(body_variant)
-        body_variant = remove_line_endings(s).lower()
+        body_variant = remove_line_endings(s)
     return body_variant
 
 
@@ -146,17 +147,38 @@ def filter_emails_by_keywords(config: list[str], context: dict) -> bool:
         ### print("################## NO BODY #####################")
 
     # Match: does keyword exist in string
-    for item in keywords:
-        if subject and item in subject:
-            context['ret_keyword_matched'] = True
-            context['keyword_match'] = item
-            return context
+    # for item in keywords:
+    #     if subject and item in subject.lower():
+    #         context['ret_keyword_matched'] = True
+    #         context['keyword_match'] = [item]
+    #         return context
 
-        if body and item in body:
-            context['ret_keyword_matched'] = True
-            context['keyword_match'] = item
-            return context
+    #     if body and item in body.lower():
+    #         context['ret_keyword_matched'] = True
+    #         context['keyword_match'] = [item]
+    #         return context
+
+
+    for item in keywords:
+        if subject:
+            results_subject = find_exact_word(subject, item)
+            context['ret_keyword_matched'] = bool(results_subject)
+            context['keyword_match'] = results_subject
+            if bool(results_subject):
+                return context
+
+        if body:
+            results_body = find_exact_word(body, item)
+            context['ret_keyword_matched'] = bool(results_body)
+            context['keyword_match'] = results_body
+            if bool(results_body):
+                return context
+
 
     # No match
     return context
 
+
+def find_exact_word(text: str, word: str) -> list[str]:
+    pattern = rf'(?<![a-zA-Z]){re.escape(word)}(?![a-zA-Z])'
+    return re.findall(pattern, text, flags=re.IGNORECASE)
