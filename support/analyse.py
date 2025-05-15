@@ -1,5 +1,6 @@
 import os
 import pathlib
+from tqdm import tqdm
 
 from support.handleemail import read_eml, apply_eml_filters, verdict_eml_filter_output
 from support.handleics import read_ics, apply_ics_filters, verdict_ics_filter_output
@@ -21,7 +22,7 @@ def analyse_filetype_eml(config: dict, context: dict) -> dict:
     context = apply_eml_filters(config, context)
 
     # Return verdict value, hit = True, no hit = False
-    context['match'] = verdict_eml_filter_output(context)
+    context['match'] = verdict_eml_filter_output(config, context)
 
     # Cleanup file, keeping logic into account
     cleanup_file(config, context)
@@ -66,15 +67,28 @@ def analyse_file(config: dict, filepath: str) -> None:
             cleanup_file(config, context)
 
 
+# count all files
+def gather_all_files(root: str):
+    for dirpath, _, filenames in os.walk(root):
+        for filename in filenames:
+            yield os.path.join(dirpath, filename)
+
+
 # Walk dir and start analyses
 def walk_and_analyse(config) -> None:
+    # Check if path exists
     if not os.path.exists(config['tmp_pst_dir']):
         raise FileNotFoundError(f"{config['tmp_pst_dir']} does not exist")
 
-    for dirpath, dirnames, filenames in os.walk(config['tmp_pst_dir']):
-        print(f'Found directory: {dirpath}')
-        for filename in filenames:
-            filepath = os.path.join(dirpath, filename)
-            
-            print(f'Analysing file: {filepath}')
-            analyse_file(config, filepath)
+    # Gather all files
+    files = list(gather_all_files(config['tmp_pst_dir']))
+    with tqdm(files, desc="Processing files", unit="file") as pbar:
+        for path in pbar:
+            pbar.set_postfix(file=os.path.basename(path))
+
+            if config['verbose']:
+                print(f'Analysing file: {path}')
+
+            # start analyses
+            analyse_file(config, path)
+            pbar.update(1)

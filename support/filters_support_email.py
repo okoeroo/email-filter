@@ -2,7 +2,9 @@ from email.message import EmailMessage
 from striprtf.striprtf import rtf_to_text
 from email.utils import parsedate_to_datetime
 from support.filter_support import remove_line_endings, find_exact_word
+from support.handlepdf import read_pdf_from_bytes, apply_pdf_filters_as_attachment
 import pytz
+import pathlib
 
 
 # Function to filter emails by a list of email addresses
@@ -83,16 +85,6 @@ def extract_subject_from_email(msg: EmailMessage) -> str:
     return subject
 
 
-# Extract e-mail body to processable text
-def extract_body_from_email(msg: EmailMessage, preferencelist: str) -> str:
-    charset = msg.get_content_charset() or 'utf-8'
-    body_variant = msg.get_body(preferencelist=preferencelist)
-    if body_variant:
-        s = str(body_variant)
-        body_variant = remove_line_endings(s)
-    return body_variant
-
-
 # The purpose here is to exclusively extract the body, which could be Rich Text, as if it were an attachment
 def extract_body_from_email(msg: EmailMessage) -> str:
     # 1. Probeer gewone text/plain of text/html body
@@ -119,15 +111,30 @@ def extract_body_from_email(msg: EmailMessage) -> str:
 
     return None
 
+# The purpose here is to extract the attachments and write them to disk and report in an list[str] where the str is the full path.
+def extract_attachments_from_email(msg: EmailMessage) -> list[tuple[str, bytes]]:
+    attachments = []
+
+    for part in msg.walk():
+        content_disposition = part.get("Content-Disposition", "")
+        if content_disposition and "attachment" in content_disposition.lower():
+            filename = part.get_filename()
+            payload = part.get_payload(decode=True)  # binary data
+            if filename and payload:
+                attachments.append((filename, payload))
+
+    return attachments
+
+
 # Function to filter emails by a list of email addresses
 def filter_emails_by_keywords(config: dict, context: dict) -> bool:
     msg: EmailMessage = context['msg']
     context['ret_eml_keyword_matched'] = False
+    context['ret_eml_attachment_keyword_matched'] = False
 
     # input keywords to match
     keywords = config['keywords']
 
-    # Lowercase subject and body in all formats
     subject = extract_subject_from_email(msg)
     body    = extract_body_from_email(msg)
     if not body:
@@ -136,37 +143,84 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
         ### print(msg)
         ### print("################## NO BODY #####################")
 
-    # Match: does keyword exist in string
-    # for item in keywords:
-    #     if subject and item in subject.lower():
-    #         context['ret_eml_keyword_matched'] = True
-    #         context['keyword_match'] = [item]
-    #         return context
+    # The attachments list is an array of tuples with filepaths and payload in bytes
+    attachments: list[tuple[str, bytes]] = extract_attachments_from_email(msg)
+    attachments_matched = list[dict] 
 
-    #     if body and item in body.lower():
-    #         context['ret_eml_keyword_matched'] = True
-    #         context['keyword_match'] = [item]
-    #         return context
+    context['keyword_match'] = []
 
-
-    for item in keywords:
-        if subject:
+    if subject:
+        for item in keywords:
             results_subject = find_exact_word(subject, item)
             context['ret_eml_keyword_matched'] = bool(results_subject)
-            context['keyword_match'] = results_subject
+            context['keyword_match'] += results_subject or []
             if bool(results_subject):
                 return context
 
-        if body:
+    if body:
+        for item in keywords:
             results_body = find_exact_word(body, item)
             context['ret_eml_keyword_matched'] = bool(results_body)
-            context['keyword_match'] = results_body
+            context['keyword_match'] += results_body or []
             if bool(results_body):
                 return context
 
+    if attachments:
+        atleast_one_attachment_matched = False
+
+        # Note: each attachment is evaluated. All will be checked. If one
+        # matches, all will be written to disk.
+        for att in attachments:
+            filename, data = att
+            suffix = pathlib.Path(filename).suffix.lower()
+            if suffix == ".pdf":
+                pdfreader = read_pdf_from_bytes(data)
+
+                if pdfreader:
+                    # apply pdf filtering.
+                    keyword_match = apply_pdf_filters_as_attachment(config, context, pdfreader)
+                    context['keyword_match'] += keyword_match or []
+                    if not atleast_one_attachment_matched:
+                        atleast_one_attachment_matched = bool(keyword_match)
+
+        # If one matched, write all to disk
+        context['ret_eml_attachment_keyword_matched'] = atleast_one_attachment_matched
+        if atleast_one_attachment_matched:
+            for att in attachments:
+                filename, data = att
+                eml_filepath = context['filepath']
+
+                path = pathlib.Path(eml_filepath)
+
+                # Step 1: Get filename without suffix
+                base_name = path.stem  # 'document'
+
+                # Step 2: Create a new directory path
+                dir_path = path.with_name(base_name)  # replaces 'document.pdf' with 'document'
+
+                # Step 3: Make the directory
+                dir_path.mkdir(parents=True, exist_ok=True)
+
+                print(f"Directory created at: {dir_path}")
+                orig_path = dir_path / filename
+                full_path = unique_filename(orig_path)
+
+                with open(full_path, "wb") as f:
+                    f.write(data)
+                    print(f"Attachment written: {full_path}")
 
     # No match
     return context
 
 
+def unique_filename(path: pathlib.Path) -> pathlib.Path:
+    if not path.exists():
+        return path
 
+    counter = 1
+    while True:
+        new_name = f"{path.stem}__{counter}{path.suffix}"
+        new_path = path.with_name(new_name)
+        if not new_path.exists():
+            return new_path
+        counter += 1

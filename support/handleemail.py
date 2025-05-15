@@ -39,26 +39,31 @@ def apply_eml_filters(config: dict, context: dict) -> dict:
 
 
 ### Run logical settings
-def verdict_eml_filter_output(context: dict) -> bool:
+def verdict_eml_filter_output(config: dict, context: dict) -> bool:
     if not context['ret_datetime_frame_matched']:
         print("No hit: out of timeframe.")
         return False
 
-    # Must match emailadress, and it did match. Then, if there is no keywords filter, this is the final answer.
-    if context['ret_emailaddress_matched']  and not context['ret_eml_keyword_matched']:
-        print("HIT: matched on emailaddress")
-        return True
+    if context['ret_emailaddress_matched'] or \
+        context['ret_eml_keyword_matched'] or \
+        context['ret_eml_attachment_keyword_matched']:
 
-    # Must match keyword, and it did match. Then, if there is no emailaddress filter, this is the final answer.
-    if not context['ret_emailaddress_matched'] and context['ret_eml_keyword_matched']:
-        print(f"HIT: matched on keyword. Keyword hit on: \"{context['keyword_match']}\"")
-        return True
+        rep = "HIT: matched on" 
+        if context['ret_emailaddress_matched']:
+            rep += " emailaddress(es)"
 
-    # If both keyword and emailaddresses are set, and both have "must match", then it's a logical and between them.
-    if context['ret_emailaddress_matched'] and context['ret_eml_keyword_matched']:
-        print(f"HIT: matched on emailaddress and keyword. Keyword hit on: \"{context['keyword_match']}\"")
+        if context['ret_eml_keyword_matched']:
+            rep += " keyword(s)"
+
+        if context['ret_eml_attachment_keyword_matched']:
+            rep += " attachments"
+        
+        rep += f". Keyword hit on: \"{context['keyword_match']}\""
+
+        print(rep)
         return True
 
     # Otherwise, no match
-    print("No hit")
+    if config['verbose']:
+        print("No hit")
     return False

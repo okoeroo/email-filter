@@ -2,3 +2,6 @@ pytz
 striprtf
 tzlocal
 icalendar
+PyPDF2
+pycryptodome
+tqdm
