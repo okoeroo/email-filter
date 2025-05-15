@@ -1,3 +1,4 @@
 pytz
 striprtf
 tzlocal
+icalendar
