@@ -8,29 +8,27 @@ from support.filters import filter_emails_by_addresses, filter_emails_by_datetim
 def apply_filters(config: list[str], context: dict) -> dict:
     msg: EmailMessage = context['msg']
 
-    ret_datetime_frame_matched = False
-    ret_emailaddress_matched = False
-    ret_keyword_matched = False
+    context['ret_datetime_frame_matched'] = False
+    context['ret_emailaddress_matched'] = False
+    context['ret_keyword_matched'] = False
 
     # Filter for timeframe
     if config['filter_datetime_frame_begin_datetime'] is not None and config['filter_datetime_frame_end_datetime'] is not None:
-        ret_datetime_frame_matched = filter_emails_by_datetime_frame(config, msg)
+        context['ret_datetime_frame_matched'] = filter_emails_by_datetime_frame(config, msg)
 
-        # Unchangeable, when the begin and end dates are set and the email is out of timeframe, this makes for an implicit mismatch.
-        if not ret_datetime_frame_matched:
-            return (ret_datetime_frame_matched, ret_emailaddress_matched, ret_keyword_matched)
+        # Unchangeable outcome, when the begin and end dates are set and the email is out of timeframe, this makes for an implicit mismatch.
+        if not context['ret_datetime_frame_matched']:
+            return context
 
     # Filter for emailaddress, when the list and config is set.
     if config['email_addresses'] is not None:
-        ret_emailaddress_matched = filter_emails_by_addresses(config, msg)
+        context['ret_emailaddress_matched'] = filter_emails_by_addresses(config, msg)
 
     # Filter for keywords, when the list and config is set.
     if config['keywords'] is not None:
         context = filter_emails_by_keywords(config, context)
 
-    # Verdict
-    context['ret_datetime_frame_matched'] = ret_datetime_frame_matched
-    context['ret_emailaddress_matched'] = ret_emailaddress_matched
+    # final verdict
     return context
 
 
