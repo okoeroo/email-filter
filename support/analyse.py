@@ -1,6 +1,7 @@
 import os
 import pathlib
 from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from support.handleemail import read_eml, apply_eml_filters, verdict_eml_filter_output
 from support.handleics import read_ics, apply_ics_filters, verdict_ics_filter_output
@@ -50,7 +51,7 @@ def analyse_filetype_ics(config: dict, context: dict) -> dict:
 # analyse .eml
 # Each filter replies with a boolean.
 # The final decision is a boolean
-def analyse_file(config: dict, filepath: str) -> None:
+def analyse_file(config: dict, filepath: str) -> dict:
     context = {}
 
     context['filepath'] = filepath
@@ -67,6 +68,8 @@ def analyse_file(config: dict, filepath: str) -> None:
             context['match'] = False
             cleanup_file(config, context)
 
+    return context
+
 
 # count all files
 def gather_all_files(root: str):
@@ -75,21 +78,45 @@ def gather_all_files(root: str):
             yield os.path.join(dirpath, filename)
 
 
+# Wrapper zodat tqdm in parallel gebruikt kan worden
+def analyse_wrapper(args):
+    config, path = args
+    if config['verbose']:
+        print(f'Analysing file: {path}')
+    context = analyse_file(config, path)
+    return context
+
+
 # Walk dir and start analyses
 def walk_and_analyse(config) -> None:
-    # Check if path exists
     if not os.path.exists(config['tmp_pst_dir']):
         raise FileNotFoundError(f"{config['tmp_pst_dir']} does not exist")
 
-    # Gather all files
+    print(f"Info: Gathering files...")
     files = list(gather_all_files(config['tmp_pst_dir']))
-    with tqdm(files, desc="Processing files", unit="file") as pbar:
-        for path in pbar:
-            pbar.set_postfix(file=os.path.basename(path))
+    print(f"Info: List completed with {len(files)} files.")
 
-            if config['verbose']:
-                print(f'Analysing file: {path}')
+    results = []
 
-            # start analyses
-            analyse_file(config, path)
-            pbar.update(1)
+    with ThreadPoolExecutor(max_workers=config.get('threads', 16)) as executor:
+        tasks = [(config, path) for path in files]
+        futures = {executor.submit(analyse_wrapper, task): task[1] for task in tasks}
+
+        with tqdm(total=len(futures), desc="Processing files", unit="file") as pbar:
+            for future in as_completed(futures):
+                context = future.result()
+                pbar.set_postfix(file=os.path.basename(context['filepath']))
+                if context:
+                    results.append(context)
+                pbar.update(1)
+    
+    # Samenvatting
+    print("\n=== Analyses of files ===")
+    cnt = 0
+    for context in results:
+        if not context['match']:
+            continue
+
+        cnt += 1
+        print(f"{cnt}: \"{os.path.basename(context['filepath'])}\"")
+    
