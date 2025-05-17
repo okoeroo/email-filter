@@ -98,7 +98,7 @@ def walk_and_analyse(config) -> None:
 
     results = []
 
-    with ThreadPoolExecutor(max_workers=config.get('threads', 16)) as executor:
+    with ThreadPoolExecutor(max_workers=config.get('threads', 8)) as executor:
         tasks = [(config, path) for path in files]
         futures = {executor.submit(analyse_wrapper, task): task[1] for task in tasks}
 

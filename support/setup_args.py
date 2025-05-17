@@ -39,7 +39,7 @@ def argparsing(scriptpath):
     parser.add_argument("--input-pst-path",
                         dest="input_pst_path",
                         help="Input PST file.",
-                        required=True,
+                        required=False,
                         type=str)
 
     parser.add_argument("--filter-match-emailaddresses-file-path",
@@ -93,8 +93,16 @@ def argparsing(scriptpath):
     parser.add_argument("--output-folder",
                         dest="output_folder",
                         help="This is the output directory in which all results will be moved into",
-                        required=True,
+                        required=False,
                         type=str)
+
+    parser.add_argument("--threads",
+                        dest="threads",
+                        help="Set the amount of threads for the file handling",
+                        required=False,
+                        default=8,
+                        type=int)
+                    
 
     return parser.parse_args()
 
@@ -110,6 +118,7 @@ def setup(argp):
     config['input_pst_path'] = argp.input_pst_path
     config['unpacked_pst'] = argp.unpacked_pst
     config['only_pst_unpack'] = argp.only_pst_unpack
+    config['threads'] = argp.threads
     config['filter_match_emailaddresses_file_path'] = argp.filter_match_emailaddresses_file_path
     config['filter_match_emailaddresses_must_match'] = argp.filter_match_emailaddresses_must_match
     config['filter_match_keywords_file_path'] = argp.filter_match_keywords_file_path

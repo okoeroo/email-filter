@@ -49,9 +49,7 @@ def verdict_pdf_filter_output(context: dict) -> bool:
     return bool(context.get('keyword_match'))
 
 
-def apply_pdf_filters_as_attachment(config: dict, context: dict, pdf_reader: PdfReader) -> dict:
-    ret_pdf_keyword_matched = False
-
+def apply_pdf_filters_as_attachment(config: dict, pdf_reader: PdfReader) -> list[str]:
     # input keywords to match
     keywords = config['keywords']
 
@@ -66,7 +64,7 @@ def apply_pdf_filters_as_attachment(config: dict, context: dict, pdf_reader: Pdf
         try:
             text = page.extract_text()
         except Exception as e:
-            print("Error: PDF problem on this page: {e}")
+            print(f"Error: PDF problem on this page: {e}")
             continue
 
         ### Matching

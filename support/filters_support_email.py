@@ -3,6 +3,8 @@ from striprtf.striprtf import rtf_to_text
 from email.utils import parsedate_to_datetime
 from support.filter_support import remove_line_endings, find_exact_word
 from support.handlepdf import read_pdf_from_bytes, apply_pdf_filters_as_attachment
+from support.handleics import read_ics_from_bytes, apply_ics_filters_as_attachment
+from support.handledocx import read_docx_from_bytes, apply_docx_filters_as_attachment
 import pytz
 import pathlib
 
@@ -135,7 +137,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
     subject = extract_subject_from_email(msg)
     body    = extract_body_from_email(msg)
     if not body:
-        print("################## NO BODY #####################")
+        print(f"################## NO BODY: {context['filepath']}")
         ### Mogelijk moeten de attachments er nog uitgehaald worden.
         ### print(msg)
         ### print("################## NO BODY #####################")
@@ -168,6 +170,10 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
         # Note: each attachment is evaluated. All will be checked. If one
         # matches, all will be written to disk.
         for att in attachments:
+            if "1606.eml" in context['filepath']:
+                print("inspect me")
+
+
             filename, data = att
             suffix = pathlib.Path(filename).suffix.lower()
             if suffix == ".pdf":
@@ -175,10 +181,29 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
 
                 if pdfreader:
                     # apply pdf filtering.
-                    keyword_match = apply_pdf_filters_as_attachment(config, context, pdfreader)
+                    keyword_match = apply_pdf_filters_as_attachment(config, pdfreader)
                     context['keyword_match'] += keyword_match or []
                     if not atleast_one_attachment_matched:
                         atleast_one_attachment_matched = bool(keyword_match)
+
+            if suffix == ".ics":
+                gcal = read_ics_from_bytes(data)
+                if gcal:
+                    # Apply ICS filtering.
+                    keyword_match = apply_ics_filters_as_attachment(config, gcal)
+                    context['keyword_match'] += keyword_match or []
+                    if not atleast_one_attachment_matched:
+                        atleast_one_attachment_matched = bool(keyword_match)
+
+            if suffix == ".docx" or suffix == ".doc":
+                doc = read_docx_from_bytes(data)
+                if doc:
+                    # Apply docx filtering.
+                    keyword_match = apply_docx_filters_as_attachment(config, doc)
+                    context['keyword_match'] += keyword_match or []
+                    if not atleast_one_attachment_matched:
+                        atleast_one_attachment_matched = bool(keyword_match)
+
 
         # If one matched, write all to disk
         context['ret_eml_attachment_keyword_matched'] = atleast_one_attachment_matched
