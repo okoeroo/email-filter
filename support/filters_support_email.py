@@ -170,8 +170,8 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
         # Note: each attachment is evaluated. All will be checked. If one
         # matches, all will be written to disk.
         for att in attachments:
-            if "1606.eml" in context['filepath']:
-                print("inspect me")
+            # if "1606.eml" in context['filepath']:
+                # print("inspect me")
 
 
             filename, data = att
