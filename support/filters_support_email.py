@@ -94,7 +94,6 @@ def extract_body_from_email(msg: EmailMessage) -> str:
 
     # 2. Doorloop alle onderdelen op zoek naar rtf-body.rtf
     for part in msg.walk():
-        content_disposition = part.get("Content-Disposition", "")
         filename = part.get_filename()
         if filename and filename.lower() == "rtf-body.rtf":
             # Decode payload veilig
@@ -106,8 +105,6 @@ def extract_body_from_email(msg: EmailMessage) -> str:
 
             # Converteer RTF naar platte tekst
             return remove_line_endings(rtf_to_text(rtf_str))
-        else:
-            print("DEBUG: filename", filename)
 
     return None
 
