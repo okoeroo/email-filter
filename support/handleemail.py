@@ -58,7 +58,7 @@ def verdict_eml_filter_output(config: dict, context: dict) -> bool:
         if context['ret_eml_attachment_keyword_matched']:
             items.append("attachments")
 
-        print(f"HIT: matched on [{", ".join(items)}]. Keyword hit on: {context['keyword_match']}")
+        print(f"HIT: matched on [{", ".join(items)}]. Keyword hit on: {context['keyword_match']} in email: {context['filepath']}")
         return True
 
     # Otherwise, no match
