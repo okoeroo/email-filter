@@ -3,6 +3,7 @@ import pathlib
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from support.logging import write_log
 from support.handleemail import read_eml, apply_eml_filters, verdict_eml_filter_output
 from support.handleics import read_ics_to_text, apply_ics_filters, verdict_ics_filter_output
 
@@ -12,7 +13,7 @@ def cleanup_file(config: dict, context: dict) -> None:
     # When not in dry-run mode, and no match, then remove the file
     if not config['dryrun'] and not context['match']:
         if config['verbose']:
-            print(f"Removing non-match: {context['filepath']}")
+            write_log(config, f"Removing non-match: {context['filepath']}")
         os.unlink(context['filepath'])
 
 
@@ -64,7 +65,7 @@ def analyse_file(config: dict, filepath: str) -> dict:
             context['extention'] = context['extention']
             context = analyse_filetype_eml(config, context)
         case _:
-            print(f"Warning: File extention \"{context['extention']}\" not supported, found in file: {context['filepath']}")
+            write_log(config, f"Warning: File extention \"{context['extention']}\" not supported, found in file: {context['filepath']}", level="WARNING")
             context['match'] = False
             cleanup_file(config, context)
 
@@ -80,7 +81,7 @@ def gather_all_files(root: str):
 
 def analyse_wrapper(config, path):
     if config.get('verbose'):
-        print(f'Analysing file: {path}')
+        write_log(config, f'Analysing file: {path}')
     return analyse_file(config, path)
 
 
@@ -88,9 +89,9 @@ def walk_and_analyse(config) -> None:
     if not os.path.exists(config['tmp_pst_dir']):
         raise FileNotFoundError(f"{config['tmp_pst_dir']} does not exist")
 
-    print(f"Info: Gathering files...")
+    write_log(config, f"Info: Gathering files...")
     files = list(gather_all_files(config['tmp_pst_dir']))
-    print(f"Info: List completed with {len(files)} files.")
+    write_log(config, f"Info: List completed with {len(files)} files.")
 
     results = []
 

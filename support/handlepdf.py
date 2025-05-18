@@ -2,6 +2,7 @@ from PyPDF2 import PdfReader
 from PyPDF2.generic import NullObject
 from io import BytesIO
 from support.filter_support import apply_filter_on_fulltext_by_keywords
+from support.logging import write_log
 
 
 def read_pdf_from_file_to_text(filepath: str) -> str:
@@ -11,11 +12,11 @@ def read_pdf_from_file_to_text(filepath: str) -> str:
     return read_pdf_from_bytes_to_text(data)
 
 
-def read_pdf_from_bytes_to_text(data: bytes) -> str:
+def read_pdf_from_bytes_to_text(config: dict, data: bytes) -> str:
     try:
         reader = PdfReader(BytesIO(data))
     except Exception as e:
-        print(f"Error in PdfReader: \"{e}\"")
+        write_log(config, f"Error in PdfReader: \"{e}\"", level="ERROR")
 
     if reader.is_encrypted:
         return None
@@ -27,14 +28,14 @@ def read_pdf_from_bytes_to_text(data: bytes) -> str:
         # Extra check voor inhoudsobject
         contents = page.get("/Contents")
         if isinstance(contents, NullObject):
-            print(f"Warning: Pagina heeft geen inhoud, wordt overgeslagen.")
+            write_log(config, f"Pagina heeft geen inhoud, wordt overgeslagen.", level="WARNING")
             continue
 
         # Checked
         try:
             elements.append(page.extract_text())
         except Exception as e:
-            print(f"Error: PDF problem on this page: {e}")
+            write_log(config, f"PDF problem on this page: {e}", level="ERROR")
             continue
 
     return "\n".join(elements)

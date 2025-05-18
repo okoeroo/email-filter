@@ -7,9 +7,10 @@ import pytz
 
 import shutil
 
+from support.logging import open_log_file, write_log, close_log_file
 from support.handlepst import run_readpst
 from support.analyse import walk_and_analyse
-from support.handlefiles import remove_empty_dirs, remove_files_not_matching_list_of_extentions
+from support.handlefiles import remove_empty_dirs
 from support.setup_args import argparsing, setup
 
 
@@ -21,44 +22,44 @@ def main(config: dict) -> None:
         try:
             run_readpst(config['tmp_pst_dir'], config['input_pst_path'])
         except Exception as e:
-            print("Error:", e)
-            print("Info: temporary directory is here:", config['tmp_pst_dir'])
+            write_log(config, f"Error: {e}", level = "ERROR")
+            write_log(config, f"Info: temporary directory is here: {config['tmp_pst_dir']}", stdout=True)
             return
     else:
-        print(f"Override: Skipping the readpst processing. Pre-unpacked directory is \"{config['unpacked_pst']}\"")
+        write_log(config, f"Override: Skipping the readpst processing. Pre-unpacked directory is \"{config['unpacked_pst']}\"", stdout=True)
 
 
     # if only PST unpacking, skip all.
     if config['only_pst_unpack']:
-        print(f"Done. Location is: {config['tmp_pst_dir']}")
+        write_log(config, f"Done. Location is: {config['tmp_pst_dir']}", stdout=True)
         return
 
     # Walk and analyse
     results = walk_and_analyse(config)
 
     # Summary
-    print("\n=== Analyses of files ===")
+    write_log(config, "=== Analyses of files ===", stdout=True)
     cnt = 0
     for context in results:
         if not context['match']:
             continue
         cnt += 1
-        print(f"{cnt}: \"{os.path.basename(context['filepath'])}\"")
+        write_log(config, f"{cnt}: \"{os.path.basename(context['filepath'])}\"", stdout=True)
 
     # ************ Dry-run ON or OFF ************
     if config['dryrun']:
-        print(f"DRYRUN: exiting without moving files. Location is: {config['tmp_pst_dir']}")
+        write_log(config, f"DRYRUN: exiting without moving files. Location is: {config['tmp_pst_dir']}", stdout=True)
         return
 
     # Remove directories which are empty
-    print(f"Removing empty directories from {config['tmp_pst_dir']}")
+    write_log(config, f"Removing empty directories from {config['tmp_pst_dir']}", stdout=True)
     remove_empty_dirs(config['tmp_pst_dir'])
 
     # Move
-    print("- Done -")
-    print(f"Moving {config['tmp_pst_dir']} to {config['output_folder']}")
+    write_log(config, "- Done -", stdout=True)
+    write_log(config, f"Moving {config['tmp_pst_dir']} to {config['output_folder']}", stdout=True)
     shutil.move(config['tmp_pst_dir'], config['output_folder'])
-    print("===============================================")
+    write_log(config, "===============================================", stdout=True)
 
 
 # Start
@@ -81,5 +82,16 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {e}")
 
-    # Kick it off
-    main(config)
+    try:
+        # Open logfile
+        if config['logfile']:
+            config = open_log_file(config)
+            print(f"Logfile opened. Logging will continue in {config['logfile']}")
+            write_log(config, "Logging started.")
+
+        # Kick it off
+        main(config)
+
+    # Close logfile
+    finally:
+        close_log_file(config)

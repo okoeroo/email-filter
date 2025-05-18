@@ -3,9 +3,10 @@ import zipfile
 from docx import Document
 from io import BytesIO
 from support.filter_support import apply_filter_on_fulltext_by_keywords
+from support.logging import write_log
 
 
-def read_olefile_as_text(data: bytes) -> str:
+def read_olefile_as_text(config: dict, data: bytes) -> str:
     try:
         ole = olefile.OleFileIO(BytesIO(data))
         text_parts = []
@@ -24,10 +25,10 @@ def read_olefile_as_text(data: bytes) -> str:
                     print(f"Fout bij {name}: {e}")
         return "\n\n".join(text_parts)
     except NotOleFileError as e:
-        print(f"Not an OLE file: {e}")
+        write_log(config, f"Not an OLE file: {e}", level="WARNING")
         return None
     except Exception as e:
-        print(f"Error in OLE: {e}")
+        write_log(config, f"Error in OLE: {e}", level="WARNING")
         return None
 
 
@@ -44,7 +45,7 @@ def read_openxml_as_text(data: bytes) -> str:
         return None
 
 
-def read_worddoc_as_text(data: bytes) -> str:
+def read_worddoc_as_text(config: dict, data: bytes) -> str:
     try:
         docx = Document(BytesIO(data))
         full_text = "".join(para.text for para in docx.paragraphs)
@@ -54,12 +55,12 @@ def read_worddoc_as_text(data: bytes) -> str:
         return None
 
     except Exception as e:
-        print(f"Error: failure in docx conversion. {e}, trying openxml.")
+        write_log(config, f"Error: failure in docx conversion. {e}, trying openxml.")
         return None
 
 
-def read_docx_from_bytes_to_text(data: bytes) -> str:
-    full_text = read_worddoc_as_text(data)
+def read_docx_from_bytes_to_text(config: dict, data: bytes) -> str:
+    full_text = read_worddoc_as_text(config, data)
     if full_text:
         return full_text
 
@@ -67,17 +68,11 @@ def read_docx_from_bytes_to_text(data: bytes) -> str:
     if full_text:
         return full_text
 
-    full_text = read_olefile_as_text(data)
+    full_text = read_olefile_as_text(config, data)
     if full_text:
         return full_text
 
     return None
-
-
-# def read_docx(filepath: str) -> str:
-#     with open(filepath, "rb") as f:
-#         raw_bytes = f.read()
-#     return read_docx_from_bytes(raw_bytes)
 
 
 # IMPORTANT: time is more complicated to judge. Hence, no timeframe matching is done here.

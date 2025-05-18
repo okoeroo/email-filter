@@ -13,7 +13,6 @@ def read_ics_from_bytes_to_text(data: bytes) -> str:
 
     elements = []
 
-    full_text = ""
     for component in gcal.walk():
         if component.name != "VEVENT":
             continue

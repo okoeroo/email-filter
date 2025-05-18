@@ -1,9 +1,13 @@
 import os
 import sys
 import subprocess
+from support.logging import write_log
 
 
-def run_readpst(output_dir: str, input_filepath: str):
+def run_readpst(config: dict) -> None:
+    output_dir: str = config['tmp_pst_dir']
+    input_filepath: str = config['input_pst_path']
+
     # Bestaat het?
     if not os.path.exists(input_filepath):
         raise FileNotFoundError(f"PST niet gevonden: {input_filepath}")
@@ -18,7 +22,7 @@ def run_readpst(output_dir: str, input_filepath: str):
         if output == '' and process.poll() is not None:
             break
         if output:
-            print(output.strip())
+            write_log(config, output.strip(), stdout=True)
 
     # Print stderr in real time
     while True:
@@ -26,7 +30,7 @@ def run_readpst(output_dir: str, input_filepath: str):
         if error == '' and process.poll() is not None:
             break
         if error:
-            print(error.strip(), file=sys.stderr)
+            write_log(config, error.strip(), level="ERROR", stdout=True)
 
     # Wait for the process to complete and get the return code
     process.wait()
@@ -35,4 +39,4 @@ def run_readpst(output_dir: str, input_filepath: str):
     if return_code != 0:
         raise Exception("readpst failed with error core {return_code}")
 
-    print("readpst return code", return_code)
+    write_log(config, f"readpst return code: {return_code}", stdout=True)

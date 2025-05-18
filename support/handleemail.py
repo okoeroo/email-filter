@@ -2,6 +2,7 @@ from email import policy
 from email.message import EmailMessage
 from email.parser import BytesParser
 from support.filters_support_email import filter_emails_by_addresses, filter_emails_by_datetime_frame, filter_emails_by_keywords
+from support.logging import write_log
 
 
 # Function to read .eml file
@@ -42,7 +43,7 @@ def apply_eml_filters(config: dict, context: dict) -> dict:
 def verdict_eml_filter_output(config: dict, context: dict) -> bool:
     if not context['ret_datetime_frame_matched']:
         if config['verbose']:
-            print("No hit: out of timeframe.")
+            write_log(config, f"No hit: out of timeframe. Related email: {context['filepath']}")
         return False
 
     if context['ret_emailaddress_matched'] or \
@@ -59,10 +60,10 @@ def verdict_eml_filter_output(config: dict, context: dict) -> bool:
         if context['ret_eml_attachment_keyword_matched']:
             items.append("attachments")
 
-        print(f"HIT: matched on [{", ".join(items)}]. Keyword hit on: {context['keyword_match']} in email: {context['filepath']}")
+        write_log(config, f"HIT: matched on [{", ".join(items)}]. Keyword hit on: {context['keyword_match']} in email: {context['filepath']}")
         return True
 
     # Otherwise, no match
     if config['verbose']:
-        print("No hit")
+        write_log(config, "No hit")
     return False

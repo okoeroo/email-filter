@@ -5,6 +5,7 @@ from support.filter_support import remove_line_endings, find_exact_word, apply_f
 from support.handlepdf import read_pdf_from_bytes_to_text
 from support.handleics import read_ics_from_bytes_to_text
 from support.handledocx import read_docx_from_bytes_to_text
+from support.logging import write_log
 import pytz
 import pathlib
 
@@ -20,7 +21,7 @@ def filter_emails_by_datetime_frame(config: dict, msg: EmailMessage) -> bool:
     date_str = msg.get('date')
     if date_str is None:
         if config['verbose']:
-            print(f"Warning: no datetime field found in email. Reporting as no match.")    
+            write_log(config, f"Warning: no datetime field found in email. Reporting as no match.", level="WARNING")
         return True # Don't discard based on format failures
 
     # Convert
@@ -33,12 +34,12 @@ def filter_emails_by_datetime_frame(config: dict, msg: EmailMessage) -> bool:
     # Check if the date_value is within the timeframe.
     if date_value >= begin_dt and date_value <= end_dt:
         if config['verbose']:
-            print(f"HIT: email within datetime frame")
+            write_log(config, f"HIT: email within datetime frame")
         return True
 
     # If the email address is outside of the time-frame.
     if config['verbose']:
-        print(f"Info: Out of time frame: e-mail Date is {date_value.isoformat()}, which out of the {begin_dt.isoformat()} and {end_dt.isoformat()} window.")
+        write_log(config, f"Out of time frame: e-mail Date is {date_value.isoformat()}, which out of the {begin_dt.isoformat()} and {end_dt.isoformat()} window.")
     return False
 
 
@@ -55,25 +56,25 @@ def filter_emails_by_addresses(config: dict, msg: EmailMessage) -> bool:
 
     # Continue matching filter
     if any(email_address in this_from.lower() for email_address in email_addresses):
-        print(f"HIT in From found")
+        write_log(config, f"HIT in From found")
         return True
 
     this_to = msg.get('To')
     if this_to is not None:
         if any(email_address in this_to.lower() for email_address in email_addresses):
-            print(f"HIT in To found")
+            write_log(config, f"HIT in To found")
             return True
 
     this_cc = msg.get('Cc')
     if this_cc is not None:
         if any(email_address in this_cc.lower() for email_address in email_addresses):
-            print(f"HIT in Cc found")
+            write_log(config, f"HIT in Cc found")
             return True
 
     this_bcc = msg.get('Bcc')
     if this_bcc is not None:
         if any(email_address in this_bcc.lower() for email_address in email_addresses):
-            print(f"HIT in Bcc found")
+            write_log(config, f"HIT in Bcc found")
             return True
 
     # If the email address is not found in any of the fields
@@ -137,14 +138,13 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
     subject = extract_subject_from_email(msg)
     body    = extract_body_from_email(msg)
     if not body:
-        print(f"################## NO BODY: {context['filepath']}")
+        write_log(config, f"################## NO BODY: {context['filepath']}")
         ### Mogelijk moeten de attachments er nog uitgehaald worden.
         ### print(msg)
         ### print("################## NO BODY #####################")
 
     # The attachments list is an array of tuples with filepaths and payload in bytes
     attachments: list[tuple[str, bytes]] = extract_attachments_from_email(msg)
-    attachments_matched = list[dict] 
 
     context['keyword_match'] = []
 
@@ -177,7 +177,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
             filename, data = att
             suffix = pathlib.Path(filename).suffix.lower()
             if suffix == ".pdf":
-                pdfreader = read_pdf_from_bytes_to_text(data)
+                pdfreader = read_pdf_from_bytes_to_text(config, data)
 
                 if pdfreader:
                     # apply pdf filtering.
@@ -196,7 +196,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
                         atleast_one_attachment_matched = bool(keyword_match)
 
             if suffix == ".docx" or suffix == ".doc":
-                doc = read_docx_from_bytes_to_text(data)
+                doc = read_docx_from_bytes_to_text(config, data)
                 if doc:
                     # Apply docx filtering.
                     keyword_match = apply_filter_on_fulltext_by_keywords(config['keywords'], doc)
@@ -226,9 +226,9 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
                 if not config['dryrun']:
                     with open(full_path, "wb") as f:
                         f.write(data)
-                    print(f"Attachment written: {full_path}")
+                    write_log(config, f"Attachment written: {full_path}")
                 else:
-                    print(f"DRYRUN holding of write of attachment: {full_path}")
+                    write_log(config, f"DRYRUN holding off write of attachment: {full_path}")
 
     # No match
     return context

@@ -29,6 +29,13 @@ def argparsing(scriptpath):
                         action="store_true",
                         default=False)
 
+    parser.add_argument("--logfile",
+                        dest="logfile",
+                        help="Path for the logfile output",
+                        required=False,
+                        default=None,
+                        type=str)
+
     parser.add_argument("--only-pst-unpack",
                         dest="only_pst_unpack",
                         help="Only unpack the PST file. All other options are discarded",
@@ -121,6 +128,7 @@ def setup(argp):
     config['verbose'] = argp.verbose
     config['dryrun'] = argp.dryrun
     config['debug'] = argp.debug
+    config['logfile'] = argp.logfile
     config['local_timezone'] = argp.local_timezone
     config['input_pst_path'] = argp.input_pst_path
     config['unpacked_pst'] = argp.unpacked_pst

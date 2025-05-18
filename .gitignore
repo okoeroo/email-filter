@@ -4,3 +4,4 @@ tags
 *.swp
 .venv
 *.BACKUP
+logfile
