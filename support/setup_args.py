@@ -17,6 +17,12 @@ def argparsing(scriptpath):
                         action="store_true",
                         default=False)
 
+    parser.add_argument("--dryrun",
+                        dest="dryrun",
+                        help="Dryrun mode. It will not write, move or remove files. Default is off",
+                        action="store_true",
+                        default=False)
+
     parser.add_argument("--debug",
                         dest="debug",
                         help="Debug mode. Default is off",
@@ -113,6 +119,7 @@ def setup(argp):
 
     config['exec'] = os.path.basename(__file__)
     config['verbose'] = argp.verbose
+    config['dryrun'] = argp.dryrun
     config['debug'] = argp.debug
     config['local_timezone'] = argp.local_timezone
     config['input_pst_path'] = argp.input_pst_path
@@ -175,6 +182,9 @@ def setup(argp):
 
     print("Filter From:", begin_dt.isoformat())
     print("      Until:", end_dt.isoformat())
+
+    # Dry-run mode?
+    print(f"***** DRY RUN MODE: {'On' if config['dryrun'] else 'Off'} *****")
 
     # Only PST unpacking
     if config['only_pst_unpack']:

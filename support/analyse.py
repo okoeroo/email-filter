@@ -9,8 +9,8 @@ from support.handleics import read_ics_to_text, apply_ics_filters, verdict_ics_f
 
 # Cleanup a file: meaning, removing a file when, not in debug mode, a match
 def cleanup_file(config: dict, context: dict) -> None:
-    # When not in debug mode, and no match, then remove the file
-    if not config['debug'] and not context['match']:
+    # When not in dry-run mode, and no match, then remove the file
+    if not config['dryrun'] and not context['match']:
         if config['verbose']:
             print(f"Removing non-match: {context['filepath']}")
         os.unlink(context['filepath'])

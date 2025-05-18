@@ -223,9 +223,12 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
                 full_path = unique_filename(orig_path)
 
                 # Write bytestream
-                with open(full_path, "wb") as f:
-                    f.write(data)
+                if not config['dryrun']:
+                    with open(full_path, "wb") as f:
+                        f.write(data)
                     print(f"Attachment written: {full_path}")
+                else:
+                    print(f"DRYRUN holding of write of attachment: {full_path}")
 
     # No match
     return context
