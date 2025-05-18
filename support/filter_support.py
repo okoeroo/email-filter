@@ -2,6 +2,17 @@ import os
 import re
 
 
+# filter_on_keywords_normalized and return matches
+def apply_filter_on_fulltext_by_keywords(keywords: list[str], full_text: str) -> list[str]:
+    ### Matching
+    for item in keywords:
+        keyword_match = find_exact_word(full_text, item)
+        if bool(keyword_match):
+            return keyword_match
+
+    return None
+
+
 # Perfect match
 def find_exact_word(text: str, word: str) -> list[str]:
     pattern = rf'(?<![a-zA-Z]){re.escape(word)}(?![a-zA-Z])'

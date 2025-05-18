@@ -1,10 +1,10 @@
 from email.message import EmailMessage
 from striprtf.striprtf import rtf_to_text
 from email.utils import parsedate_to_datetime
-from support.filter_support import remove_line_endings, find_exact_word
-from support.handlepdf import read_pdf_from_bytes, apply_pdf_filters_as_attachment
-from support.handleics import read_ics_from_bytes, apply_ics_filters_as_attachment
-from support.handledocx import read_docx_from_bytes, apply_docx_filters_as_attachment
+from support.filter_support import remove_line_endings, find_exact_word, apply_filter_on_fulltext_by_keywords
+from support.handlepdf import read_pdf_from_bytes_to_text
+from support.handleics import read_ics_from_bytes_to_text
+from support.handledocx import read_docx_from_bytes_to_text
 import pytz
 import pathlib
 
@@ -177,29 +177,29 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
             filename, data = att
             suffix = pathlib.Path(filename).suffix.lower()
             if suffix == ".pdf":
-                pdfreader = read_pdf_from_bytes(data)
+                pdfreader = read_pdf_from_bytes_to_text(data)
 
                 if pdfreader:
                     # apply pdf filtering.
-                    keyword_match = apply_pdf_filters_as_attachment(config, pdfreader)
+                    keyword_match = apply_filter_on_fulltext_by_keywords(config['keywords'], pdfreader)
                     context['keyword_match'] += keyword_match or []
                     if not atleast_one_attachment_matched:
                         atleast_one_attachment_matched = bool(keyword_match)
 
             if suffix == ".ics":
-                gcal = read_ics_from_bytes(data)
+                gcal = read_ics_from_bytes_to_text(data)
                 if gcal:
                     # Apply ICS filtering.
-                    keyword_match = apply_ics_filters_as_attachment(config, gcal)
+                    keyword_match = apply_filter_on_fulltext_by_keywords(config['keywords'], gcal)
                     context['keyword_match'] += keyword_match or []
                     if not atleast_one_attachment_matched:
                         atleast_one_attachment_matched = bool(keyword_match)
 
             if suffix == ".docx" or suffix == ".doc":
-                doc = read_docx_from_bytes(data)
+                doc = read_docx_from_bytes_to_text(data)
                 if doc:
                     # Apply docx filtering.
-                    keyword_match = apply_docx_filters_as_attachment(config, doc)
+                    keyword_match = apply_filter_on_fulltext_by_keywords(config['keywords'], doc)
                     context['keyword_match'] += keyword_match or []
                     if not atleast_one_attachment_matched:
                         atleast_one_attachment_matched = bool(keyword_match)

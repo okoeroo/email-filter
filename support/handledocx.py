@@ -1,13 +1,45 @@
 from docx import Document
 from io import BytesIO
-from support.filter_support import find_exact_word
+from support.filter_support import apply_filter_on_fulltext_by_keywords
+
+import zipfile
+
+def read_openxml_as_text(data: bytes) -> str:
+    text = ""
+    with zipfile.ZipFile(BytesIO(data)) as zipf:
+        zf_list = zipf.namelist()
+        for filename in zf_list:
+            with zipf.open(filename) as f:
+                text += f.read().decode('utf-8', errors='ignore')
+    return text
+
+def read_worddoc_as_text(data: bytes) -> str:
+    try:
+        docx = Document(BytesIO(data))
+        full_text = "".join(para.text for para in docx.paragraphs)
+        return full_text
+
+    except ValueError as e:
+        return None
+
+    except Exception as e:
+        print(f"Error: failure in docx conversion. {e}, trying openxml.")
+        return None
 
 
-def read_docx_from_bytes(data: bytes) -> Document:
-    return Document(BytesIO(data))
+def read_docx_from_bytes_to_text(data: bytes) -> str:
+    full_text = read_worddoc_as_text(data)
+    if full_text:
+        return full_text
+
+    full_text = read_openxml_as_text(data)
+    if full_text:
+        return full_text
+
+    return None
 
 
-def read_docx(filepath: str) -> Document:
+def read_docx(filepath: str) -> str:
     with open(filepath, "rb") as f:
         raw_bytes = f.read()
     return read_docx_from_bytes(raw_bytes)
@@ -15,44 +47,15 @@ def read_docx(filepath: str) -> Document:
 
 # IMPORTANT: time is more complicated to judge. Hence, no timeframe matching is done here.
 def apply_docx_filters(config: dict, context: dict) -> dict:
-    doc: Document = context['docx']
-
+    doc_text: str = context['docx']
     context['ret_docx_keyword_matched'] = False
 
-    # input keywords to match
-    keywords = config['keywords']
-
-    full_text = ""
-    for para in doc.paragraphs:
-        full_text += para.text
-
-        ### Matching
-        for item in keywords:
-            results = find_exact_word(full_text, item)
-            context['ret_docx_keyword_matched'] = bool(results)
-            context['keyword_match'] = results
-            if bool(results):
-                return context
+    results = apply_filter_on_fulltext_by_keywords(config['keywords'], doc_text)
+    context['keyword_match'] = results
+    context['ret_docx_keyword_matched'] = bool(results)
 
     return context
 
 
 def verdict_docx_filter_output(context: dict) -> bool:
     return bool(context.get('keyword_match'))
-
-
-def apply_docx_filters_as_attachment(config: dict, doc: Document) -> list[str]:
-    # input keywords to match
-    keywords = config['keywords']
-
-    full_text = ""
-    for para in doc.paragraphs:
-        full_text += para.text
-
-        ### Matching
-        for item in keywords:
-            keyword_match = find_exact_word(full_text, item)
-            if bool(keyword_match):
-                return keyword_match
-
-    return None
