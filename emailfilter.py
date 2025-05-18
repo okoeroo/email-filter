@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 from datetime import datetime
 from tzlocal import get_localzone_name
 import pytz
@@ -36,7 +37,16 @@ def main(config: dict) -> None:
 #    remove_files_not_matching_list_of_extentions(config['tmp_pst_dir'], ['.eml'])
 
     # Walk and analyse
-    walk_and_analyse(config)
+    results = walk_and_analyse(config)
+
+    # Summary
+    print("\n=== Analyses of files ===")
+    cnt = 0
+    for context in results:
+        if not context['match']:
+            continue
+        cnt += 1
+        print(f"{cnt}: \"{os.path.basename(context['filepath'])}\"")
 
     # Debug
     if config['debug']:
