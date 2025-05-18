@@ -41,7 +41,7 @@ def apply_eml_filters(config: dict, context: dict) -> dict:
 ### Run logical settings
 def verdict_eml_filter_output(config: dict, context: dict) -> bool:
     if not context['ret_datetime_frame_matched']:
-        if context['verbose']:
+        if config['verbose']:
             print("No hit: out of timeframe.")
         return False
 
