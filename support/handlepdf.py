@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 from PyPDF2 import PdfReader
 from PyPDF2.generic import NullObject
 from io import BytesIO

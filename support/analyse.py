@@ -96,11 +96,25 @@ def walk_and_analyse(config) -> None:
     results = []
 
     with tqdm(files, desc="Processing files", unit="file") as pbar:
-        for path in pbar:
+        # for path in pbar:
+        #     context = analyse_wrapper(config, path)
+        #     if context:
+        #         pbar.set_postfix(file=os.path.basename(context['filepath']))
+        #         results.append(context)
+        #     pbar.update(1)
+
+        for i, path in enumerate(files, 1):
             context = analyse_wrapper(config, path)
             if context:
                 pbar.set_postfix(file=os.path.basename(context['filepath']))
                 results.append(context)
-            pbar.update(1)
+
+            # Per 10
+            if i % 10 == 0:
+                pbar.update(10)
+
+            # Elke 1000 bestanden: toon status
+            if i % 1000 == 0:
+                print(f"STATUS !!! current: {pbar.n}, total: {pbar.total}, percentage {(pbar.n / pbar.total) * 100:.2f}%")
 
     return results
