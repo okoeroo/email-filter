@@ -86,8 +86,8 @@ if __name__ == "__main__":
         # Open logfile
         if config['logfile']:
             config = open_log_file(config)
-            print(f"Logfile opened. Logging will continue in {config['logfile']}")
-            write_log(config, "Logging started.")
+            print(f"Logfile opened. Logging will continue in file \"{config['logfile']}\"")
+            write_log(config, "========= Logging started =========")
 
         # Kick it off
         main(config)
