@@ -5,3 +5,5 @@ icalendar
 PyPDF2
 pycryptodome
 tqdm
+python-docx
+olefile
