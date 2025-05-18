@@ -33,9 +33,6 @@ def main(config: dict) -> None:
         print(f"Done. Location is: {config['tmp_pst_dir']}")
         return
 
-    # Remove not matching extentions
-#    remove_files_not_matching_list_of_extentions(config['tmp_pst_dir'], ['.eml'])
-
     # Walk and analyse
     results = walk_and_analyse(config)
 
@@ -48,9 +45,9 @@ def main(config: dict) -> None:
         cnt += 1
         print(f"{cnt}: \"{os.path.basename(context['filepath'])}\"")
 
-    # Debug
-    if config['debug']:
-        print(f"DEBUG: exiting without moving files. Location is: {config['tmp_pst_dir']}")
+    # ************ Dry-run ON or OFF ************
+    if config['dryrun']:
+        print(f"DRYRUN: exiting without moving files. Location is: {config['tmp_pst_dir']}")
         return
 
     # Remove directories which are empty
