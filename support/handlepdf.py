@@ -20,6 +20,7 @@ def read_pdf_from_bytes_to_text(config: dict, data: bytes) -> str:
         reader = PdfReader(BytesIO(data))
     except Exception as e:
         write_log(config, f"Error in PdfReader: \"{e}\"", level="ERROR")
+        return None
 
     if reader.is_encrypted:
         return None
