@@ -10,7 +10,10 @@ def read_ics_to_text(filepath: str) -> str:
 
 def read_ics_from_bytes_to_text(data: bytes) -> str:
     ### TODO: Should add try except or None check
-    gcal = Calendar.from_ical(data)
+    try:
+        gcal = Calendar.from_ical(data)
+    except:
+        return None
 
     elements = []
 
