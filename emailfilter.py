@@ -51,9 +51,13 @@ def main(config: dict) -> None:
         write_log(config, f"DRYRUN: exiting without moving files. Location is: {config['tmp_pst_dir']}", stdout=True)
         return
 
+
     # Remove directories which are empty
     write_log(config, f"Removing empty directories from {config['tmp_pst_dir']}", stdout=True)
     remove_empty_dirs(config['tmp_pst_dir'])
+
+    ### BLOCK
+    return
 
     # Move
     write_log(config, "- Done -", stdout=True)
