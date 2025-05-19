@@ -24,9 +24,6 @@ def read_olefile_as_text(config: dict, data: bytes) -> str:
                 except Exception as e:
                     print(f"Fout bij {name}: {e}")
         return "\n\n".join(text_parts)
-    except NotOleFileError as e:
-        write_log(config, f"Not an OLE file: {e}", level="WARNING")
-        return None
     except Exception as e:
         write_log(config, f"Error in OLE: {e}", level="WARNING")
         return None
