@@ -103,7 +103,17 @@ def walk_and_analyse(config) -> None:
         #         results.append(context)
         #     pbar.update(1)
 
+        # semafoor = True
         for i, path in enumerate(files, 1):
+            # if semafoor and path == "/Users/okoeroo/Documents/Onderzoeken/WOO/M250411843/OUTPUT-M250411843/RAW/tmpvncdapbo/ministerlzs@minvws.nl/Postvak IN/14950.eml":
+            #     # Fast Forward
+            #     semafoor = False
+
+            # if semafoor:
+            #     write_log(config, f"Fast forward: {path}")
+            #     pbar.update(1)
+            #     continue
+
             context = analyse_wrapper(config, path)
             if context:
                 pbar.set_postfix(file=os.path.basename(context['filepath']))
