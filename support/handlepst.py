@@ -7,6 +7,7 @@ from support.logging import write_log
 def run_readpst(config: dict) -> None:
     input_filepath: str = config['input']['input_pst_path']
     output_dir: str = config['intermediate']['unpacked_pst']
+    run_cmd_list = ['readpst', '-b', '-j', '8', '-D', '-e', '-o', output_dir, input_filepath]
 
     # Bestaat het?
     if not os.path.exists(input_filepath):
@@ -16,9 +17,18 @@ def run_readpst(config: dict) -> None:
         raise FileNotFoundError(f"Output path niet beschikbaar: {output_dir}")
 
 
+
+    if not config['generic']['verbose'] and not config['generic']['debug']:
+        write_log(config, f"Starting readpst run", stdout=True)
+    else:
+        write_log(config, f"Starting readpst run: {" ".join(run_cmd_list)}", stdout=True)
+
+
     # Run
-    process = subprocess.Popen(['readpst', '-b', '-j', '8', '-D', '-e', '-o', output_dir, input_filepath], 
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    process = subprocess.Popen(run_cmd_list,
+                               stdout=subprocess.PIPE, 
+                               stderr=subprocess.PIPE, 
+                               text=True)
 
     # Print stdout in real time
     while True:
