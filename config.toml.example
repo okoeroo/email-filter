@@ -1,0 +1,31 @@
+[generic]
+verbose = false
+dryrun = false
+debug = false
+
+[run]
+logfile = "/Users/okoeroo/Documents/Onderzoeken/WOO/M250624168 - 2024-211/logfile.log"
+local_timezone = "Europe/Amsterdam"
+threads = 8
+stop_after_unpack = false
+
+[input]
+input_pst_path = "/Users/okoeroo/Documents/Onderzoeken/WOO/M250624168 - 2024-211/M250624168_01/some.pst"
+
+[intermediate]
+unpacked_pst = "/Users/okoeroo/Documents/Onderzoeken/WOO/M250624168 - 2024-211/UNPACKED/"
+
+[output]
+output_folder = "/Users/okoeroo/Documents/Onderzoeken/WOO/M250624168 - 2024-211/OUTPUT/"
+
+[filter.datetime]
+begin = "2022-01-01T00:00:00+01:00"
+end = "2024-10-31T23:59:59+01:00"
+
+[filter.emailaddresses]
+file_path = "/pad/naar/email.txt"
+must_match = "no"
+
+[filter.keywords]
+file_path = "/Users/okoeroo/Documents/Onderzoeken/WOO/M250624168 - 2024-211/keywords.txt"
+must_match = "yes"

@@ -5,3 +5,4 @@ tags
 .venv
 *.BACKUP
 logfile
+config.toml

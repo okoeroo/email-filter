@@ -77,7 +77,7 @@ def apply_docx_filters(config: dict, context: dict) -> dict:
     doc_text: str = context['docx']
     context['ret_docx_keyword_matched'] = False
 
-    results = apply_filter_on_fulltext_by_keywords(config['keywords'], doc_text)
+    results = apply_filter_on_fulltext_by_keywords(config['filter']['keywords']['list_of_keywords'], doc_text)
     context['keyword_match'] = results
     context['ret_docx_keyword_matched'] = bool(results)
 

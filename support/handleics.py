@@ -45,7 +45,7 @@ def apply_ics_filters(config: dict, context: dict) -> dict:
     context['ret_ics_keyword_matched'] = False
     full_text: str = context['gcal_full_text']
 
-    results = apply_filter_on_fulltext_by_keywords(config['keywords'], full_text)
+    results = apply_filter_on_fulltext_by_keywords(config['filter']['keywords']['list_of_keywords'], full_text)
     context['keyword_match'] = results
     context['ret_ics_keyword_matched'] = bool(results)
 

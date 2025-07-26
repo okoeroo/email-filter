@@ -4,10 +4,10 @@ ALLOWED_LOG_LEVELS = {"INFO", "ERROR", "WARNING"}
 
 
 def open_log_file(config) -> dict:
-    if not config['logfile']:
+    if not config['run']['logfile']:
         raise ValueError("Error: open_log_file() called without setting a logfile parameter.")
 
-    config['logfp'] = open(config['logfile'], "a", buffering=1, encoding="utf-8")  # line-buffered
+    config['logfp'] = open(config['run']['logfile'], "a", buffering=1, encoding="utf-8")  # line-buffered
     return config
 
 
@@ -17,7 +17,7 @@ def write_log(config: dict, message: str, level: str = "INFO", stdout: bool = Fa
     line = f"[{timestamp}] {level:<7} {message}\n"
 
     # Print to stdout
-    if level == "ERROR" or stdout or config['verbose']:
+    if level == "ERROR" or stdout or config['generic']['verbose']:
         print(line)
 
     # Write to file

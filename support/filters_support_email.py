@@ -13,14 +13,14 @@ import pathlib
 # Function to filter emails by a list of email addresses
 def filter_emails_by_datetime_frame(config: dict, msg: EmailMessage) -> bool:
     # Init
-    begin_dt = config['begin_dt']
-    end_dt = config['end_dt']
+    begin_dt = config['filter']['datetime']['begin_dt']
+    end_dt = config['filter']['datetime']['end_dt']
     local_timezone = config['local_timezone']
 
     # First filter - timeframe
     date_str = msg.get('date')
     if date_str is None:
-        if config['verbose']:
+        if config['generic']['verbose']:
             write_log(config, f"Warning: no datetime field found in email. Reporting as no match.", level="WARNING")
         return True # Don't discard based on format failures
 
@@ -33,12 +33,12 @@ def filter_emails_by_datetime_frame(config: dict, msg: EmailMessage) -> bool:
 
     # Check if the date_value is within the timeframe.
     if date_value >= begin_dt and date_value <= end_dt:
-        if config['verbose']:
+        if config['generic']['verbose']:
             write_log(config, f"HIT: email within datetime frame")
         return True
 
     # If the email address is outside of the time-frame.
-    if config['verbose']:
+    if config['generic']['verbose']:
         write_log(config, f"Out of time frame: e-mail Date is {date_value.isoformat()}, which out of the {begin_dt.isoformat()} and {end_dt.isoformat()} window.")
     return False
 
@@ -46,7 +46,7 @@ def filter_emails_by_datetime_frame(config: dict, msg: EmailMessage) -> bool:
 # Function to filter emails by a list of email addresses
 def filter_emails_by_addresses(config: dict, msg: EmailMessage) -> bool:
     # Init
-    email_addresses = config['email_addresses']
+    email_addresses = config['filter']['emailaddresses']['email_addresses']
     email_addresses = [email.lower() for email in email_addresses]
 
     # From: ignore MAILER-DAEMON
@@ -133,7 +133,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
     context['ret_eml_attachment_keyword_matched'] = False
 
     # input keywords to match
-    keywords = config['keywords']
+    keywords = config['filter']['keywords']['list_of_keywords']
 
     subject = extract_subject_from_email(msg)
     body    = extract_body_from_email(msg)
@@ -181,7 +181,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
 
                 if pdfreader:
                     # apply pdf filtering.
-                    keyword_match = apply_filter_on_fulltext_by_keywords(config['keywords'], pdfreader)
+                    keyword_match = apply_filter_on_fulltext_by_keywords(config['filter']['keywords']['list_of_keywords'], pdfreader)
                     context['keyword_match'] += keyword_match or []
                     if not atleast_one_attachment_matched:
                         atleast_one_attachment_matched = bool(keyword_match)
@@ -190,7 +190,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
                 gcal = read_ics_from_bytes_to_text(data)
                 if gcal:
                     # Apply ICS filtering.
-                    keyword_match = apply_filter_on_fulltext_by_keywords(config['keywords'], gcal)
+                    keyword_match = apply_filter_on_fulltext_by_keywords(config['filter']['keywords']['list_of_keywords'], gcal)
                     context['keyword_match'] += keyword_match or []
                     if not atleast_one_attachment_matched:
                         atleast_one_attachment_matched = bool(keyword_match)
@@ -199,7 +199,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
                 doc = read_docx_from_bytes_to_text(config, data)
                 if doc:
                     # Apply docx filtering.
-                    keyword_match = apply_filter_on_fulltext_by_keywords(config['keywords'], doc)
+                    keyword_match = apply_filter_on_fulltext_by_keywords(config['filter']['keywords']['list_of_keywords'], doc)
                     context['keyword_match'] += keyword_match or []
                     if not atleast_one_attachment_matched:
                         atleast_one_attachment_matched = bool(keyword_match)
@@ -223,7 +223,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
                 full_path = unique_filename(orig_path)
 
                 # Write bytestream
-                if not config['dryrun']:
+                if not config['generic']['dryrun']:
                     with open(full_path, "wb") as f:
                         f.write(data)
                     write_log(config, f"Attachment written: {full_path}")

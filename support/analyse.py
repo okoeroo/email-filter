@@ -11,8 +11,8 @@ from support.handleics import read_ics_to_text, apply_ics_filters, verdict_ics_f
 # Cleanup a file: meaning, removing a file when, not in debug mode, a match
 def cleanup_file(config: dict, context: dict) -> None:
     # When not in dry-run mode, and no match, then remove the file
-    if not config['dryrun'] and not context['match']:
-        if config['verbose']:
+    if not config['generic']['dryrun'] and not context['match']:
+        if config['generic']['verbose']:
             write_log(config, f"Removing non-match: {context['filepath']}")
         os.unlink(context['filepath'])
 
@@ -85,15 +85,15 @@ def analyse_wrapper(config, path):
     return analyse_file(config, path)
 
 
-def walk_and_analyse(config) -> None:
-    if not os.path.exists(config['tmp_pst_dir']):
-        raise FileNotFoundError(f"{config['tmp_pst_dir']} does not exist")
+def walk_and_analyse(config) -> list:
+    if not os.path.exists(config['intermediate']['unpacked_pst']):
+        raise FileNotFoundError(f"{config['intermediate']['unpacked_pst']} does not exist")
 
     write_log(config, f"Info: Gathering files...")
-    files = list(gather_all_files(config['tmp_pst_dir']))
+    files = list(gather_all_files(config['intermediate']['unpacked_pst']))
     write_log(config, f"Info: List completed with {len(files)} files.")
 
-    results = []
+    results: list = []
 
     with tqdm(files, desc="Processing files", unit="file") as pbar:
         # for path in pbar:

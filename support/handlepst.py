@@ -5,8 +5,8 @@ from support.logging import write_log
 
 
 def run_readpst(config: dict) -> None:
-    output_dir: str = config['tmp_pst_dir']
-    input_filepath: str = config['input_pst_path']
+    input_filepath: str = config['input']['input_pst_path']
+    output_dir: str = config['intermediate']['unpacked_pst']
 
     # Bestaat het?
     if not os.path.exists(input_filepath):

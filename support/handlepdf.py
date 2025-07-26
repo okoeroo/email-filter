@@ -49,7 +49,7 @@ def apply_pdf_filters(config: dict, context: dict) -> dict:
     context['ret_pdf_keyword_matched'] = False
     pdf_text: str = context['pdf']
 
-    results = apply_filter_on_fulltext_by_keywords(config['keywords'], pdf_text)
+    results = apply_filter_on_fulltext_by_keywords(config['filter']['keywords']['list_of_keywords'], pdf_text)
     context['keyword_match'] = results
     context['ret_pdf_keyword_matched'] = bool(results)
 
