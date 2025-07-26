@@ -22,7 +22,7 @@ def phase1_unpack_pst_into_directory(config: dict) -> None:
     except Exception as e:
         write_log(config, f"Error: {e}", level = "ERROR")
         write_log(config, f"Info: temporary directory is here: {config['intermediate']['unpacked_pst']}", stdout=True)
-        return
+        raise Exception("phase1 FAILED")
 
 
 # Phase 2: process and filter the unpacked directory
@@ -73,8 +73,13 @@ def main(config: dict) -> None:
     # Is PST file unpacking requested?
     if config['input']['unpack_pst']:
         # Phase 1: unpacking PST
-        phase1_unpack_pst_into_directory(config)
+        try:
+            phase1_unpack_pst_into_directory(config)
+        except Exception as e:
+            write_log(config, f"ERROR: {e}", level = "ERROR", stdout=True)
+            return # Return directly, do not clean up.
 
+        # How to continue
         if config['intermediate']['stop_after_unpack']:
             write_log(config, f"Stop after unpack. Unpack location is: {config['intermediate']['unpacked_pst']}", stdout=True)
             return # Return directly, do not clean up.

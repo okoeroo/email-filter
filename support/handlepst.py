@@ -10,7 +10,11 @@ def run_readpst(config: dict) -> None:
 
     # Bestaat het?
     if not os.path.exists(input_filepath):
-        raise FileNotFoundError(f"PST niet gevonden: {input_filepath}")
+        raise FileNotFoundError(f"PST file niet gevonden: {input_filepath}")
+
+    if not os.path.exists(output_dir):
+        raise FileNotFoundError(f"Output path niet beschikbaar: {output_dir}")
+
 
     # Run
     process = subprocess.Popen(['readpst', '-b', '-j', '8', '-D', '-e', '-o', output_dir, input_filepath], 
