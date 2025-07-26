@@ -37,8 +37,8 @@ def phase2_process_and_filter_unpacked_dir(config: dict) -> list | None:
         return None
 
 
-# Phase 3: summary and clean up
-def phase3_summary_and_clean_up(config: dict, results: list | None) -> None:
+# Phase 3: summary
+def phase3_summary(config: dict, results: list | None) -> None:
     # Summary
     write_log(config, "=== Analyses of files ===", stdout=True)
     cnt = 0
@@ -48,15 +48,15 @@ def phase3_summary_and_clean_up(config: dict, results: list | None) -> None:
         cnt += 1
         write_log(config, f"{cnt}: \"{os.path.basename(context['filepath'])}\"", stdout=True)
 
-    # ************ Dry-run ON or OFF ************
-    if config['generic']['dryrun']:
+# Phase 4: clean up
+def phase4_clean_up(config: dict) -> None:
+    # Cleanup Unpack directory
+    if config['intermediate']['cleanup_unpacked_data']:
+        # Remove directories which are empty
+        write_log(config, f"Removing empty directories from {config['intermediate']['unpacked_pst']}", stdout=True)
+        remove_empty_dirs(config['intermediate']['unpacked_pst'])
+    else:
         write_log(config, f"DRYRUN: exiting without moving files. Location is: {config['intermediate']['unpacked_pst']}", stdout=True)
-        return
-
-
-    # Remove directories which are empty
-    write_log(config, f"Removing empty directories from {config['intermediate']['unpacked_pst']}", stdout=True)
-    remove_empty_dirs(config['intermediate']['unpacked_pst'])
 
     ### BLOCK
     return
@@ -90,8 +90,11 @@ def main(config: dict) -> None:
     # Phase 2: process unpacked directory
     results = phase2_process_and_filter_unpacked_dir(config)
 
-    # Phase 3: summary and clean up
-    phase3_summary_and_clean_up(config, results)
+    # Phase 3: summary
+    phase3_summary(config, results)
+
+    # Phase 4: clean up
+    phase4_clean_up(config)
 
 
 # Start

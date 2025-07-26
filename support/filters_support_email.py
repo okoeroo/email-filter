@@ -15,7 +15,7 @@ def filter_emails_by_datetime_frame(config: dict, msg: EmailMessage) -> bool:
     # Init
     begin_dt = config['filter']['datetime']['begin_dt']
     end_dt = config['filter']['datetime']['end_dt']
-    local_timezone = config['local_timezone']
+    local_timezone = config['run']['local_timezone']
 
     # First filter - timeframe
     date_str = msg.get('date')

@@ -20,7 +20,7 @@ def apply_eml_filters(config: dict, context: dict) -> dict:
     context['ret_eml_keyword_matched'] = False
 
     # Filter for timeframe
-    if config['filter']['datetime']['begin'] is not None and config['filter']['datetime']['end']is not None:
+    if config['filter']['datetime']['begin'] is not None and config['filter']['datetime']['end'] is not None:
         context['ret_datetime_frame_matched'] = filter_emails_by_datetime_frame(config, msg)
 
         # Unchangeable outcome, when the begin and end dates are set and the email is out of timeframe, this makes for an implicit mismatch.
@@ -28,11 +28,15 @@ def apply_eml_filters(config: dict, context: dict) -> dict:
             return context
 
     # Filter for emailaddress, when the list and config is set.
-    if config['filter']['emailaddresses']['email_addresses'] is not None:
+    if 'email_addresses' in config['filter'] and \
+            'email_addresses' in config['filter']['emailaddresses'] and \
+            config['filter']['emailaddresses']['email_addresses'] is not None:
         context['ret_emailaddress_matched'] = filter_emails_by_addresses(config, msg)
 
     # Filter for keywords, when the list and config is set.
-    if config['filter']['keywords']['list_of_keywords'] is not None:
+    if 'keywords' in config['filter'] and \
+            'list_of_keywords' in config['filter']['keywords'] and \
+            config['filter']['keywords']['list_of_keywords'] is not None:
         context = filter_emails_by_keywords(config, context)
 
     # final verdict
