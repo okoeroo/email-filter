@@ -20,7 +20,7 @@ def main(config: dict) -> None:
     if config['unpacked_pst'] is None:
         # Run readpst on the PST file and into the temporary path
         try:
-            run_readpst(config['tmp_pst_dir'], config['input_pst_path'])
+            run_readpst(config)
         except Exception as e:
             write_log(config, f"Error: {e}", level = "ERROR")
             write_log(config, f"Info: temporary directory is here: {config['tmp_pst_dir']}", stdout=True)
@@ -35,7 +35,11 @@ def main(config: dict) -> None:
         return
 
     # Walk and analyse
-    results = walk_and_analyse(config)
+    try:
+        results = walk_and_analyse(config)
+    except Exception as e:
+        print(f"Error: {e}")
+        return
 
     # Summary
     write_log(config, "=== Analyses of files ===", stdout=True)
