@@ -12,9 +12,6 @@
             "console": "integratedTerminal",
             "args": [
                         "--config-file", "config.toml",
-                        "--only-pst-unpack",
-                        "--input-pst-path", "/Users/okoeroo/Documents/Onderzoeken/WOO/M250624168 - 2024-211/M250624168_01/wg.vd.kraan@minvws.nl.pst",
-                        "--output-folder", "/Users/okoeroo/Documents/Onderzoeken/WOO/M250624168 - 2024-211/UNPACKED/",
                         "--debug"
                     ]
         }
