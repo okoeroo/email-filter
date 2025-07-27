@@ -1,9 +1,9 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-from PyPDF2 import PdfReader
-from PyPDF2.generic import NullObject
+import pdfplumber
 from io import BytesIO
+
 from support.filter_support import apply_filter_on_fulltext_by_keywords
 from support.logging import write_log
 
@@ -17,32 +17,13 @@ def read_pdf_from_file_to_text(filepath: str) -> str:
 
 def read_pdf_from_bytes_to_text(config: dict, data: bytes) -> str:
     try:
-        reader = PdfReader(BytesIO(data))
+        with pdfplumber.open(BytesIO(data)) as pdf:
+            all_text = "\n".join(filter(None, (p.extract_text() for p in pdf.pages)))
     except Exception as e:
-        write_log(config, f"Error in PdfReader: \"{e}\"", level="ERROR")
-        return None
+        write_log(config, f'Error in pdfplumber: {e}')
+        all_text = None
 
-    if reader.is_encrypted:
-        return None
-
-    # to full text
-    elements = []
-
-    for page in reader.pages:
-        # Extra check voor inhoudsobject
-        contents = page.get("/Contents")
-        if isinstance(contents, NullObject):
-            write_log(config, f"Pagina heeft geen inhoud, wordt overgeslagen.", level="WARNING")
-            continue
-
-        # Checked
-        try:
-            elements.append(page.extract_text())
-        except Exception as e:
-            write_log(config, f"PDF problem on this page: {e}", level="ERROR")
-            continue
-
-    return "\n".join(elements)
+    return all_text
 
 
 def apply_pdf_filters(config: dict, context: dict) -> dict:

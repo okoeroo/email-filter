@@ -114,14 +114,22 @@ def walk_and_analyse(config) -> list:
             #     pbar.update(1)
             #     continue
 
+
+            if os.path.basename(path) == '24567.eml':
+                print("this is the problem here")
+
             context = analyse_wrapper(config, path)
             if context:
+                if os.path.basename(context['filepath']) == '15631.eml':
+                    print("problematic here")
+
                 pbar.set_postfix(file=os.path.basename(context['filepath']))
                 results.append(context)
 
             # Per 10
-            if i % 10 == 0:
-                pbar.update(10)
+            # if i % 10 == 0:
+            #     pbar.update(10)
+            pbar.update(1)
 
             # Elke 1000 bestanden: toon status
             if i % 1000 == 0:

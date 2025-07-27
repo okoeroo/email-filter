@@ -2,8 +2,8 @@ pytz
 striprtf
 tzlocal
 icalendar
-PyPDF2
 pycryptodome
 tqdm
 python-docx
 olefile
+pdfplumber
