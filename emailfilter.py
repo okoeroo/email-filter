@@ -29,13 +29,8 @@ def phase1_unpack_pst_into_directory(config: dict) -> None:
 # Phase 2: process and filter the unpacked directory
 def phase2_process_and_filter_unpacked_dir(config: dict) -> list | None:
     # Walk and analyse
-    try:
-        results = walk_and_analyse(config)
-        return results
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return None
+    results = walk_and_analyse(config)
+    return results
 
 
 # Phase 3: summary
@@ -89,7 +84,11 @@ def main(config: dict) -> None:
 
 
     # Phase 2: process unpacked directory
-    results = phase2_process_and_filter_unpacked_dir(config)
+    try:
+        results = phase2_process_and_filter_unpacked_dir(config)
+    except Exception as e:
+        write_log(config, f"ERROR: {e}", level = "ERROR", stdout=True)
+        return # Return directly, do not clean up.
 
     # Phase 3: summary
     phase3_summary(config, results)
