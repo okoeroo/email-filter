@@ -11,8 +11,7 @@
             "program": "emailfilter.py",
             "console": "integratedTerminal",
             "args": [
-                        "--config-file", "config.toml",
-                        "--debug"
+                        "--config-file", "config.toml"
                     ]
         }
     ]
