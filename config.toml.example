@@ -7,6 +7,7 @@ debug = false
 logfile = "/Users/okoeroo/Documents/Onderzoeken/WOO/M250624168 - 2024-211/logfile.log"
 local_timezone = "Europe/Amsterdam"
 threads = 8
+async_parallelism = 30
 stop_after_unpack = false
 
 [input]
