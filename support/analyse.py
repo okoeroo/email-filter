@@ -178,7 +178,7 @@ async def walk_and_analyse(config) -> list:
     write_log(config, f"Info: List completed with {len(files)} files.")
 
     results = []
-    semaphore = asyncio.Semaphore(10)  # Max parallelism
+    semaphore = asyncio.Semaphore(config['run']['async_parallelism'])  # Max parallelism
 
     async def process(path):
         async with semaphore:

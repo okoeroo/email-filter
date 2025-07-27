@@ -124,6 +124,13 @@ def argparsing(scriptpath):
                         default=None,
                         type=int)
                     
+    parser.add_argument("--async-parallelism",
+                        dest="async_parallelism",
+                        help="Set the amount of asyncio parallel workers",
+                        required=False,
+                        default=None,
+                        type=int)
+
     return parser.parse_args()
 
 
@@ -176,10 +183,12 @@ def setup():
     if argp.logfile is not None:            config['run']['logfile'] = argp.logfile
     if argp.local_timezone is not None:     config['run']['local_timezone'] = argp.local_timezone
     if argp.threads is not None:            config['run']['threads'] = argp.threads
+    if argp.async_parallelism is not None:  config['run']['async_parallelism'] = argp.async_parallelism
     if argp.input_pst_path is not None:     config['input']['input_pst_path'] = argp.input_pst_path
     if argp.unpacked_pst is not None:       config['intermediate']['unpacked_pst'] = argp.unpacked_pst
     if argp.stop_after_unpack is not None:  config['intermediate']['stop_after_unpack'] = argp.stop_after_unpack
     if argp.output_folder is not None:      config['output']['output_folder'] = argp.output_folder
+    
 
     if argp.filter_datetime_frame_begin_datetime is not None:   config['filter']['datetime']['begin'] = argp.filter_datetime_frame_begin_datetime
     if argp.filter_datetime_frame_end_datetime is not None:     config['filter']['datetime']['end'] = argp.filter_datetime_frame_end_datetime
@@ -192,6 +201,8 @@ def setup():
     if config['run']['threads'] is None:
         config['run']['threads'] = 8    
 
+    if 'async_parallelism' not in config or config['run']['async_parallelism'] is None:
+        config['run']['async_parallelism'] = 10
 
     # Set default timezone to use as the local timezone
     set_localtime(config['run']['local_timezone'] )
