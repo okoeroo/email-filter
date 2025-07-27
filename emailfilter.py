@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 from datetime import datetime
 from tzlocal import get_localzone_name
 import pytz
@@ -109,6 +110,9 @@ if __name__ == "__main__":
 
     # Setup all the things
     config = setup()
+    if config is None:
+        print("Error in setup.")
+        sys.exit(1)
 
     try:
         # Open logfile

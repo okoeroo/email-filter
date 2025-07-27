@@ -128,18 +128,22 @@ def argparsing(scriptpath):
 
 
 # Read TOML file
-def read_toml_config_file(filepath: str) -> dict:
+def read_toml_config_file(filepath: str) -> dict | None:
     import tomllib
 
     try:
+        print(f"Using TOML file: {filepath}")
         with open(filepath, "rb") as f:
             config = tomllib.load(f)
     except FileNotFoundError:
         print("TOML file not found.")
+        return None
     except tomllib.TOMLDecodeError as e:
         print(f"Invalid TOML syntax: {e}")
+        return None
     except OSError as e:
         print(f"General I/O error: {e}")
+        return None
 
     return config
 
@@ -151,6 +155,8 @@ def setup():
 
     # Parse TOML config.
     config = read_toml_config_file(argp.configfile)
+    if config is None:
+        return
 
     if 'generic' not in config:                     config['generic'] = {}
     if 'run' not in config:                         config['run'] = {}
