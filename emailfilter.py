@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import asyncio
+
 import os
 import sys
 from datetime import datetime
@@ -27,9 +29,9 @@ def phase1_unpack_pst_into_directory(config: dict) -> None:
 
 
 # Phase 2: process and filter the unpacked directory
-def phase2_process_and_filter_unpacked_dir(config: dict) -> list | None:
+async def phase2_process_and_filter_unpacked_dir(config: dict) -> list | None:
     # Walk and analyse
-    results = walk_and_analyse(config)
+    results = await walk_and_analyse(config)
     return results
 
 
@@ -65,7 +67,7 @@ def phase4_clean_up(config: dict) -> None:
 
 
 # Main program
-def main(config: dict) -> None:
+async def main(config: dict) -> None:
     # Is PST file unpacking requested?
     if config['input']['unpack_pst']:
         # Phase 1: unpacking PST
@@ -85,9 +87,9 @@ def main(config: dict) -> None:
 
     # Phase 2: process unpacked directory
     try:
-        results = phase2_process_and_filter_unpacked_dir(config)
+        results = await phase2_process_and_filter_unpacked_dir(config)
     except Exception as e:
-        write_log(config, f"ERROR: {e}", level = "ERROR", stdout=True)
+        write_log(config, f"ERROR (phase2_process_and_filter_unpacked_dir): {e}", level = "ERROR", stdout=True)
         return # Return directly, do not clean up.
 
     # Phase 3: summary
@@ -121,8 +123,10 @@ if __name__ == "__main__":
             write_log(config, "========= Logging started =========")
 
         # Kick it off
-        main(config)
+        # main(config)
+        asyncio.run(main(config))
 
     # Close logfile
     finally:
         close_log_file(config)
+

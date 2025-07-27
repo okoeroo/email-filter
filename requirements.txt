@@ -7,3 +7,4 @@ tqdm
 python-docx
 olefile
 pdfplumber
+aiofiles

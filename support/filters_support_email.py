@@ -1,3 +1,4 @@
+import asyncio
 from email.message import EmailMessage
 from striprtf.striprtf import rtf_to_text
 from email.utils import parsedate_to_datetime
@@ -112,7 +113,7 @@ def extract_body_from_email(msg: EmailMessage) -> str:
     return None
 
 # The purpose here is to extract the attachments and write them to disk and report in an list[str] where the str is the full path.
-def extract_attachments_from_email(msg: EmailMessage) -> list[tuple[str, bytes]]:
+async def extract_attachments_from_email(msg: EmailMessage) -> list[tuple[str, bytes]]:
     attachments = []
 
     for part in msg.walk():
@@ -127,7 +128,7 @@ def extract_attachments_from_email(msg: EmailMessage) -> list[tuple[str, bytes]]
 
 
 # Function to filter emails by a list of email addresses
-def filter_emails_by_keywords(config: dict, context: dict) -> bool:
+async def filter_emails_by_keywords(config: dict, context: dict) -> bool:
     msg: EmailMessage = context['msg']
     context['ret_eml_keyword_matched'] = False
     context['ret_eml_attachment_keyword_matched'] = False
@@ -141,7 +142,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
         write_log(config, f"################## NO BODY: {context['filepath']}")
 
     # The attachments list is an array of tuples with filepaths and payload in bytes
-    attachments: list[tuple[str, bytes]] = extract_attachments_from_email(msg)
+    attachments: list[tuple[str, bytes]] = await extract_attachments_from_email(msg)
 
     context['keyword_match'] = []
 
@@ -170,7 +171,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
             filename, data = att
             suffix = pathlib.Path(filename).suffix.lower()
             if suffix == ".pdf":
-                pdfreader = read_pdf_from_bytes_to_text(config, data)
+                pdfreader = await read_pdf_from_bytes_to_text(config, data)
 
                 if pdfreader:
                     # apply pdf filtering.
@@ -189,7 +190,7 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
                         atleast_one_attachment_matched = bool(keyword_match)
 
             if suffix == ".docx" or suffix == ".doc":
-                doc = read_docx_from_bytes_to_text(config, data)
+                doc = await asyncio.to_thread(read_docx_from_bytes_to_text, config, data)
                 if doc:
                     # Apply docx filtering.
                     keyword_match = apply_filter_on_fulltext_by_keywords(config['filter']['keywords']['list_of_keywords'], doc)

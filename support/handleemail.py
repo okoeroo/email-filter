@@ -1,18 +1,19 @@
+import aiofiles
 from email import policy
-from email.message import EmailMessage
 from email.parser import BytesParser
+from email.message import EmailMessage
 from support.filters_support_email import filter_emails_by_addresses, filter_emails_by_datetime_frame, filter_emails_by_keywords
 from support.logging import write_log
 
 
 # Function to read .eml file
-def read_eml(filepath: str) -> EmailMessage:
-    with open(filepath, 'rb') as file:
-        msg = BytesParser(policy=policy.default).parse(file)
-    return msg
+async def read_eml_async(filepath: str) -> EmailMessage:
+    async with aiofiles.open(filepath, 'rb') as f:
+        raw_bytes = await f.read()
+    return BytesParser(policy=policy.default).parsebytes(raw_bytes)
 
 
-def apply_eml_filters(config: dict, context: dict) -> dict:
+async def apply_eml_filters(config: dict, context: dict) -> dict:
     msg: EmailMessage = context['msg']
 
     context['ret_datetime_frame_matched'] = False
@@ -37,7 +38,7 @@ def apply_eml_filters(config: dict, context: dict) -> dict:
     if 'keywords' in config['filter'] and \
             'list_of_keywords' in config['filter']['keywords'] and \
             config['filter']['keywords']['list_of_keywords'] is not None:
-        context = filter_emails_by_keywords(config, context)
+        context = await filter_emails_by_keywords(config, context)
 
     # final verdict
     return context
