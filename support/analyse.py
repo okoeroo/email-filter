@@ -93,7 +93,8 @@ async def analyse_file(config: dict, filepath: str) -> dict:
             context['extention'] = context['extention']
             context = await analyse_filetype_eml(config, context)
         case _:
-            write_log(config, f"Warning: File extention \"{context['extention']}\" not supported, found in file: {context['filepath']}", level="WARNING")
+            if config.get('verbose') or config.get('debug'):
+                write_log(config, f"Info: File extention \"{context['extention']}\" not supported, found in file: {context['filepath']}", level="INFO")
             context['match'] = False
             await cleanup_file(config, context)
 
