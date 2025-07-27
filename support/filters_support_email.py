@@ -139,9 +139,6 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
     body    = extract_body_from_email(msg)
     if not body:
         write_log(config, f"################## NO BODY: {context['filepath']}")
-        ### Mogelijk moeten de attachments er nog uitgehaald worden.
-        ### print(msg)
-        ### print("################## NO BODY #####################")
 
     # The attachments list is an array of tuples with filepaths and payload in bytes
     attachments: list[tuple[str, bytes]] = extract_attachments_from_email(msg)
@@ -170,10 +167,6 @@ def filter_emails_by_keywords(config: dict, context: dict) -> bool:
         # Note: each attachment is evaluated. All will be checked. If one
         # matches, all will be written to disk.
         for att in attachments:
-            # if "1606.eml" in context['filepath']:
-                # print("inspect me")
-
-
             filename, data = att
             suffix = pathlib.Path(filename).suffix.lower()
             if suffix == ".pdf":
