@@ -7,7 +7,7 @@ from support.logging import write_log
 def run_readpst(config: dict) -> None:
     input_filepath: str = config['input']['input_pst_path']
     output_dir: str = config['intermediate']['unpacked_pst']
-    run_cmd_list = ['readpst', '-b', '-j', '8', '-D', '-e', '-o', output_dir, input_filepath]
+    run_cmd_list = ['readpst', '-b', '-j', str(config['run']['threads']), '-D', '-e', '-o', output_dir, input_filepath]
 
     # Bestaat het?
     if not os.path.exists(input_filepath):

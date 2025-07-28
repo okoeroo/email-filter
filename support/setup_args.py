@@ -108,7 +108,6 @@ def argparsing(scriptpath):
                         dest="unpacked_pst",
                         help="This is the input directory from which an unpacked PST is expected.",
                         required=False,
-                        default=None,
                         type=str)
 
     parser.add_argument("--output-folder",
@@ -119,7 +118,7 @@ def argparsing(scriptpath):
 
     parser.add_argument("--threads",
                         dest="threads",
-                        help="Set the amount of threads for the file handling",
+                        help="Set the amount of threads for the readpst handling",
                         required=False,
                         default=None,
                         type=int)
@@ -185,8 +184,8 @@ def setup():
     if argp.threads is not None:            config['run']['threads'] = argp.threads
     if argp.async_parallelism is not None:  config['run']['async_parallelism'] = argp.async_parallelism
     if argp.input_pst_path is not None:     config['input']['input_pst_path'] = argp.input_pst_path
-    if argp.unpacked_pst is not None:       config['intermediate']['unpacked_pst'] = argp.unpacked_pst
-    if argp.stop_after_unpack is not None:  config['intermediate']['stop_after_unpack'] = argp.stop_after_unpack
+    if argp.unpacked_pst:                   config['intermediate']['unpacked_pst'] = argp.unpacked_pst
+    if argp.stop_after_unpack:              config['intermediate']['stop_after_unpack'] = argp.stop_after_unpack
     if argp.output_folder is not None:      config['output']['output_folder'] = argp.output_folder
     
 
